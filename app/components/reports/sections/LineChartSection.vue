@@ -1,0 +1,64 @@
+<template>
+  <ReportsSectionShell
+    :narrative="narrative"
+    :citations="citations"
+    :instructions="instructions"
+    :is-empty="!data.length"
+  >
+    <div class="h-72">
+      <Line :data="chartData" :options="chartOptions" />
+    </div>
+  </ReportsSectionShell>
+</template>
+
+<script setup>
+import { Line } from 'vue-chartjs'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  PointElement,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+} from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale)
+
+const props = defineProps({
+  data: { type: Array, default: () => [] },
+  instructions: { type: Object, required: true },
+  narrative: { type: String, default: '' },
+  citations: { type: Array, default: () => [] },
+})
+
+const { palette } = useChartTheme()
+
+const xKey = computed(() => props.instructions.x_axis ?? Object.keys(props.data[0] ?? {})[0])
+const yKey = computed(() => props.instructions.y_axis ?? Object.keys(props.data[0] ?? {})[1])
+
+const chartData = computed(() => {
+  const accent = palette()[0]
+  return {
+    labels: props.data.map((row) => row[xKey.value]),
+    datasets: [
+      {
+        label: yKey.value,
+        data: props.data.map((row) => Number(row[yKey.value] ?? 0)),
+        borderColor: accent,
+        backgroundColor: accent,
+        tension: 0.3,
+        fill: false,
+      },
+    ],
+  }
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: { y: { beginAtZero: true } },
+}
+</script>
