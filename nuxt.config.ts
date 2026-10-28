@@ -4,6 +4,14 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  app: {
+    head: {
+      titleTemplate: '%s | ZimEpps Admin',
+      meta: [
+        { name: 'application-name', content: 'ZimEpps Admin' },
+      ],
+    },
+  },
   modules: [
     '@nuxt/icon',
     'nuxt-auth-sanctum',

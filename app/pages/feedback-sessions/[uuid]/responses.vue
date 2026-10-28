@@ -14,7 +14,7 @@
   </div>
 </template>
 <script setup>
-definePageMeta({ middleware: ['sanctum:auth'] })
+definePageMeta({ layout: 'default', sanctum: { authOnly: true } })
 useHead({ title: 'Feedback responses' })
 const route = useRoute(); const api = useFeedbackSessionHelper(); const loading = ref(true); const error = ref(''); const report = reactive({ session: null, submitted_count: 0, questions: [] })
 const label = value => String(value || '').toLowerCase().replaceAll('_', ' ').replace(/\b\w/g, char => char.toUpperCase())

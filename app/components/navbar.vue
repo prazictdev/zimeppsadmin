@@ -3,7 +3,7 @@
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <!-- Sidebar toggle -->
       <button
-        class="btn btn-outline btn-circle btn-sm shadow-sm"
+        class="btn btn-outline btn-circle btn-sm shadow-sm lg:hidden"
         aria-label="Toggle sidebar"
         @click="$emit('toggleSidebar')"
       >

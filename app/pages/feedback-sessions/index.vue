@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-definePageMeta({ middleware: ['sanctum:auth'] })
+definePageMeta({ layout: 'default', sanctum: { authOnly: true } })
 useHead({ title: 'Feedback sessions' })
 const { canAccess, canAdd, canEdit } = useCheckPermission('feedbacksessions')
 const api = useFeedbackSessionHelper()

@@ -2,23 +2,23 @@
   <div class="flex h-full flex-col">
     <!-- Sidebar header -->
     <div class="flex min-h-20 items-center justify-between border-b border-base-300 px-4 py-3">
-      <NuxtLink to="/" class="flex items-center gap-2" @click="$emit('close')">
+      <NuxtLink to="/" class="flex min-w-0 items-center gap-3" @click="$emit('close')">
         <img
           v-if="showLogoImage"
           :src="imgUrl"
-          alt="EGP logo"
-          class="h-10 w-10 rounded-md border border-base-300 object-contain"
+          alt="Zimbabwe national emblem"
+          class="h-11 w-11 shrink-0 object-contain"
           @error="onLogoError"
         />
-        <div class="flex flex-col leading-tight">
-          <span class="text-xs font-bold text-base-content/90">PRAZ</span>
-          <span class="text-[10px] font-medium text-base-content/60">e-Procurement</span>
+        <div class="flex min-w-0 flex-col leading-tight">
+          <span class="truncate text-sm font-bold text-base-content">ZimEpps Admin</span>
+          <span class="text-[10px] font-medium uppercase tracking-wide text-base-content/60">Administration portal</span>
         </div>
       </NuxtLink>
 
       <!-- Close button — mobile only -->
       <button
-        class="btn btn-ghost btn-sm"
+        class="btn btn-ghost btn-sm lg:hidden"
         aria-label="Close sidebar"
         @click="$emit('close')"
       >
@@ -204,7 +204,7 @@ const visibleModules = computed(() => {
   return configuredModules
 })
 
-const imgUrl = ref('/img/prazlogo.jpg')
+const imgUrl = ref('/img/nationalemblem.png')
 const showLogoImage = ref(true)
 
 const onLogoError = () => {

@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-definePageMeta({ middleware: ['sanctum:auth'] })
+definePageMeta({ layout: 'default', sanctum: { authOnly: true } })
 const route = useRoute(); const router = useRouter(); const api = useFeedbackSessionHelper()
 const isNew = computed(() => route.params.uuid === 'new')
 const loading = ref(true); const saving = ref(false); const error = ref('')
