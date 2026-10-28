@@ -1,5 +1,5 @@
 <template>
-  <header class="navbar sticky top-0 z-40 border-b border-base-200/70 bg-base-100/90 px-4 py-2 shadow-sm backdrop-blur-md">
+  <header class="navbar sticky top-0 z-40 min-h-[4.75rem] border-b border-base-300 bg-base-100/95 px-4 py-2 backdrop-blur-md sm:px-6 lg:px-8">
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <!-- Sidebar toggle -->
       <button
@@ -19,8 +19,8 @@
       <TaskBell />
       <NotificationBell />
       <div class="dropdown dropdown-end">
-        <label tabindex="0" class="btn btn-outline gap-3 rounded-full border border-base-200/80  px-3 normal-case  hover:bg-base-200/60">
-          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <label tabindex="0" class="btn btn-ghost gap-3 px-2 normal-case">
+          <span class="flex h-8 w-8 items-center justify-center rounded-md bg-neutral text-neutral-content">
             <Icon name="lucide:user" class="h-4 w-4 " />
           </span>
           <span class="hidden text-sm font-medium  lg:block">
@@ -39,7 +39,7 @@
           <li>
             <button class="gap-2 rounded-lg text-error" @click="logout">
               <Icon name="lucide:log-out" />
-              Logout
+              Sign out
             </button>
           </li>
         </ul>

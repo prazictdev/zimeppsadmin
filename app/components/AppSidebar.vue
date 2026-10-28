@@ -1,13 +1,13 @@
 <template>
   <div class="flex h-full flex-col">
     <!-- Sidebar header -->
-    <div class="flex items-center justify-between border-b border-base-200 px-4 py-3">
+    <div class="flex min-h-20 items-center justify-between border-b border-base-300 px-4 py-3">
       <NuxtLink to="/" class="flex items-center gap-2" @click="$emit('close')">
         <img
           v-if="showLogoImage"
           :src="imgUrl"
           alt="EGP logo"
-          class="h-10 w-10 rounded-lg border border-success object-cover"
+          class="h-10 w-10 rounded-md border border-base-300 object-contain"
           @error="onLogoError"
         />
         <div class="flex flex-col leading-tight">
@@ -32,7 +32,7 @@
         <li>
           <NuxtLink
             to="/"
-            :class="['gap-2 rounded-lg', route.path === '/' ? 'bg-success text-white' : '']"
+            :class="['gap-2 rounded-md', route.path === '/' ? 'bg-accent text-accent-content' : '']"
             @click="$emit('close')"
           >
             <Icon name="lucide:home" class="h-4 w-4 shrink-0" />
@@ -50,7 +50,7 @@
               <li v-for="submodule in module.submodules" :key="submodule.id">
                 <NuxtLink
                   :to="submodule.url"
-                  :class="['gap-2 rounded-lg text-sm', route.path === submodule.url ? 'bg-success text-white' : '']"
+                  :class="['gap-2 rounded-md text-sm', route.path === submodule.url ? 'bg-accent text-accent-content' : '']"
                   @click="$emit('close')"
                 >
                   <Icon :name="submodule.icon" class="h-4 w-4 shrink-0" />
@@ -67,7 +67,7 @@
     <div class="border-t border-base-200 px-4 py-3">
       <button class="btn btn-ghost btn-sm w-full justify-start gap-2 text-error" @click="logout">
         <Icon name="lucide:log-out" class="h-4 w-4" />
-        Logout
+        Sign out
       </button>
     </div>
   </div>
@@ -133,6 +133,15 @@ const visibleModules = computed(() => {
       name: 'Exemption Types',
       icon: 'lucide:tags',
       url: '/exemptiontypes',
+    })
+  }
+
+  if (can('can.access.feedbacksessions') && !configuredUrls.has('/feedback-sessions')) {
+    systemConfigurationSubmodules.push({
+      id: 'feedback-sessions',
+      name: 'Feedback Sessions',
+      icon: 'lucide:messages-square',
+      url: '/feedback-sessions',
     })
   }
 

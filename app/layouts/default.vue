@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex">
+  <div class="flex min-h-screen bg-base-200">
     <!-- Mobile overlay -->
     <Transition name="fade">
       <div
@@ -24,8 +24,8 @@
     <!-- Main content -->
     <div class="flex min-w-0 flex-1 flex-col">
       <Navbar @toggleSidebar="toggleSidebar" />
-      <main class="flex-1 overflow-auto p-4">
-        <slot />
+      <main class="flex-1 overflow-auto px-4 py-5 sm:px-6 lg:px-8">
+        <div class="mx-auto w-full max-w-[96rem]"><slot /></div>
       </main>
     </div>
   </div>

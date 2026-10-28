@@ -10,6 +10,24 @@
     </div>
 
     <template v-else>
+      <section aria-labelledby="regulator-overview-heading">
+        <div class="mb-3 flex items-end justify-between">
+          <div><p class="text-sm font-medium text-primary">Authority overview</p><h2 id="regulator-overview-heading" class="mt-1 text-lg font-bold">Current operational position</h2></div>
+          <span class="text-xs text-base-content/45">Selected reporting year</span>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <NuxtLink v-for="item in overviewCards" :key="item.label" :to="item.to" class="card card-border bg-base-100">
+            <div class="card-body gap-3 p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div><p class="text-2xl font-bold tabular-nums">{{ item.value }}</p><p class="mt-1 text-sm text-base-content/60">{{ item.label }}</p></div>
+                <span class="flex h-9 w-9 items-center justify-center rounded-field bg-base-200 text-primary"><Icon :name="item.icon" class="h-4 w-4" /></span>
+              </div>
+              <div class="flex items-center justify-between border-t border-base-300 pt-3 text-xs font-semibold text-primary"><span>{{ item.action }}</span><Icon name="lucide:chevron-right" class="h-3.5 w-3.5" /></div>
+            </div>
+          </NuxtLink>
+        </div>
+      </section>
+
       <DashboardSection
         eyebrow="Supplier registrations"
         title="Registration verification"
@@ -129,6 +147,12 @@ const methods = computed(() => analytics.value.tenders_by_procurement_method ?? 
 const categories = computed(() => analytics.value.tenders_by_category ?? [])
 const spoc = computed(() => analytics.value.tender_spoc_comparison ?? { spoc: {}, non_spoc: {} })
 const accountTypes = computed(() => analytics.value.customer_account_types ?? {})
+const overviewCards = computed(() => [
+  { label: 'Supplier registrations', value: integer(registrations.value.total), icon: 'lucide:files', action: 'Open registrations', to: '/registrations/suppliers' },
+  { label: 'APPs requiring action', value: integer((appQueue.value.unassigned_handler || 0) + (appQueue.value.handler || 0) + (appQueue.value.manager || 0) + (appQueue.value.approver || 0)), icon: 'lucide:clipboard-clock', action: 'Open APP workspace', to: '/admin-plan-dashboard' },
+  { label: 'Verified payments', value: integer((finance.value.online?.transaction_count || 0) + (finance.value.automatic_bank?.transaction_count || 0) + (finance.value.manual_bank?.transaction_count || 0)), icon: 'lucide:badge-dollar-sign', action: 'Open verification', to: '/popverifications' },
+  { label: 'Registered organisations', value: integer((accountTypes.value.bidders || 0) + (accountTypes.value.procurement_entities || 0)), icon: 'lucide:building-2', action: 'Review accounts', to: '/companies' },
+])
 
 const palette = ['#2563eb', '#16a34a', '#d97706', '#64748b']
 const registrationChart = computed(() => ({

@@ -1,79 +1,40 @@
 <template>
   <div class="space-y-5">
-
-    <!-- Welcome Banner -->
-    <div class="rounded-xl border border-base-300 bg-base-100 p-5">
-      <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+    <section v-if="visibleTabs.length > 0" class="relative overflow-hidden rounded-box bg-neutral text-neutral-content">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-accent" aria-hidden="true" />
+      <div class="flex flex-col gap-5 px-5 pt-6 sm:px-7 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-base-content/45">Procurement Regulatory Authority of Zimbabwe</p>
-          <h1 class="mt-2 text-2xl font-bold">Good {{ greeting }}, {{ firstName }}</h1>
-          <p class="mt-1 text-sm text-base-content/55">
-            National e-Procurement oversight and regulatory operations
-          </p>
-          <div v-if="accountTypeNames.length" class="mt-2 flex flex-wrap gap-1">
-            <span
-              v-for="at in accountTypes"
-              :key="at.id"
-              class="badge badge-sm badge-ghost"
-            >
-              {{ at.name }}
-            </span>
+          <p class="text-sm font-medium text-neutral-content/60">{{ currentDate }}</p>
+          <h1 class="mt-1 text-2xl font-bold tracking-tight">Good {{ greeting }}, {{ firstName }}</h1>
+          <p class="mt-1 text-sm text-neutral-content/65">National procurement oversight and regulatory operations</p>
+          <div v-if="accountTypeNames.length" class="mt-3 flex flex-wrap gap-1.5">
+            <span v-for="at in accountTypes" :key="at.id" class="badge badge-sm border-neutral-content/15 bg-neutral-content/10 text-neutral-content">{{ at.name }}</span>
           </div>
         </div>
-        <div class="mt-4 flex flex-wrap items-center justify-end gap-2 sm:mt-0">
-          <div v-if="activeTab === 'regulator'" class="flex items-center gap-2">
-            <label class="input input-sm w-32 border-base-300 bg-base-100">
-              <Icon name="lucide:calendar-days" class="h-4 w-4 text-base-content/45" />
-              <select v-model.number="dashboardYear" class="grow bg-transparent text-sm outline-none" @change="refreshRegulatorDashboard">
-                <option v-for="year in dashboardYears" :key="year" :value="year">{{ year }}</option>
-              </select>
-            </label>
-            <button class="btn btn-sm btn-neutral" :disabled="dashboardLoading" @click="refreshRegulatorDashboard">
-              <span v-if="dashboardLoading" class="loading loading-spinner loading-xs" />
-              <Icon v-else name="lucide:refresh-cw" class="h-4 w-4" />
-              Refresh
-            </button>
-          </div>
-          <div class="flex items-center gap-3 rounded-lg border border-base-200 bg-base-200/30 px-4 py-3">
-            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-base-200 text-base-content/55">
-              <Icon name="lucide:calendar-clock" class="h-5 w-5" />
-            </span>
-            <div class="text-sm">
-              <p class="text-base-content/45">{{ currentDate }}</p>
-              <p class="font-semibold">{{ currentTime }}</p>
-            </div>
-          </div>
+        <div v-if="activeTab === 'regulator'" class="flex flex-wrap items-center gap-2">
+          <select v-model.number="dashboardYear" class="select select-sm border-neutral-content/15 bg-neutral text-neutral-content" aria-label="Dashboard year" @change="refreshRegulatorDashboard">
+            <option v-for="year in dashboardYears" :key="year" :value="year">{{ year }}</option>
+          </select>
+          <button class="btn btn-sm border-0 bg-neutral-content text-neutral hover:bg-neutral-content/90" :disabled="dashboardLoading" @click="refreshRegulatorDashboard">
+            <span v-if="dashboardLoading" class="loading loading-spinner loading-xs" />
+            <Icon v-else name="lucide:refresh-cw" class="h-4 w-4" />Refresh
+          </button>
         </div>
       </div>
-    </div>
+      <div role="tablist" class="tabs tabs-border mt-5 px-5 sm:px-7">
+        <button v-for="tab in visibleTabs" :key="tab.key" role="tab" class="tab h-12 text-neutral-content/60 [--tab-border-color:var(--color-accent)]" :class="{ 'tab-active text-neutral-content': activeTab === tab.key }" @click="activeTab = tab.key">
+          <Icon :name="tab.icon" class="mr-1.5 h-4 w-4" />{{ tab.label }}
+        </button>
+      </div>
+    </section>
 
-    <!-- Dashboard Tabs -->
-    <div v-if="visibleTabs.length > 0">
-      <div role="tablist" class="tabs tabs-border">
-        <template v-for="tab in visibleTabs" :key="tab.key">
-          <a
-            role="tab"
-            class="tab"
-            :class="{ 'tab-active': activeTab === tab.key }"
-            @click="activeTab = tab.key"
-          >
-            <Icon :name="tab.icon" class="mr-1.5 h-4 w-4" />
-            {{ tab.label }}
-          </a>
-          <div
-            role="tabpanel"
-            class="tab-content pt-5"
-          >
-            <component
-              :is="tab.component"
-              v-if="activeTab === tab.key"
-              :selected-year="tab.key === 'regulator' ? dashboardYear : undefined"
-              :refresh-key="tab.key === 'regulator' ? dashboardRefreshKey : undefined"
-              @loading-change="dashboardLoading = $event"
-            />
-          </div>
-        </template>
-      </div>
+    <div v-if="visibleTabs.length > 0" role="tabpanel">
+      <component
+        :is="visibleTabs.find(tab => tab.key === activeTab)?.component"
+        :selected-year="activeTab === 'regulator' ? dashboardYear : undefined"
+        :refresh-key="activeTab === 'regulator' ? dashboardRefreshKey : undefined"
+        @loading-change="dashboardLoading = $event"
+      />
     </div>
 
     <!-- No account type assigned -->
