@@ -139,12 +139,23 @@
           <ChartCard title="By procurement category" subtitle="Procurement group count and value">
             <div class="h-72"><Bar :data="categoryChart" :options="dualAxisOptions" /></div>
           </ChartCard>
-          <ChartCard title="SPOC value comparison" subtitle="Actual SPOC submissions versus other tenders">
-            <div class="h-64"><Doughnut :data="spocChart" :options="doughnutOptions" /></div>
-          </ChartCard>
-          <div class="grid gap-3 sm:grid-cols-2">
-            <ActionCard label="Came for SPOC" :value="integer(spoc.spoc.tender_count)" :note="`${amount(spoc.spoc.tender_value)} recorded value`" icon="lucide:scale" tone="warning" />
-            <ActionCard label="Did not come for SPOC" :value="integer(spoc.non_spoc.tender_count)" :note="`${amount(spoc.non_spoc.tender_value)} recorded value`" icon="lucide:circle-check" tone="success" />
+
+          <div class="grid gap-4 xl:col-span-2 lg:grid-cols-[minmax(19rem,0.42fr)_minmax(0,1fr)]">
+            <div class="stats stats-vertical h-full w-full border border-base-300 bg-base-100">
+              <div v-for="item in spocStats" :key="item.label" class="stat py-4">
+                <div class="stat-figure" :class="item.tone"><Icon :name="item.icon" class="h-5 w-5" /></div>
+                <div class="stat-title">{{ item.label }}</div>
+                <div class="stat-value flex items-baseline gap-2 text-2xl" :class="item.tone">
+                  <span>{{ amount(item.value) }}</span>
+                  <span class="text-sm font-semibold">{{ percentageOf(item.value, spocTotal) }}</span>
+                </div>
+                <div class="stat-desc">{{ item.note }}</div>
+              </div>
+            </div>
+
+            <ChartCard title="SPOC value comparison" subtitle="Recorded tender value by SPOC route">
+              <div class="h-64"><Bar :data="spocChart" :options="spocBarOptions" /></div>
+            </ChartCard>
           </div>
         </div>
       </DashboardSection>
@@ -165,10 +176,10 @@
 </template>
 
 <script setup>
-import { Bar, Doughnut } from 'vue-chartjs'
-import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Tooltip } from 'chart.js'
+import { Bar } from 'vue-chartjs'
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Tooltip } from 'chart.js'
 
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Legend, Tooltip)
+ChartJS.register(BarElement, CategoryScale, LinearScale, Legend, Tooltip)
 
 const props = defineProps({
   selectedYear: { type: Number, default: () => new Date().getFullYear() },
@@ -251,9 +262,21 @@ const financeChart = computed(() => ({
     barThickness: 30,
   }],
 }))
+const spocStats = computed(() => [
+  { label: 'Came for SPOC', value: Number(spoc.value.spoc?.tender_value || 0), note: tenderLabel(spoc.value.spoc?.tender_count), icon: 'lucide:scale', tone: 'text-warning' },
+  { label: 'Did not come for SPOC', value: Number(spoc.value.non_spoc?.tender_value || 0), note: tenderLabel(spoc.value.non_spoc?.tender_count), icon: 'lucide:circle-check', tone: 'text-success' },
+])
+const spocTotal = computed(() => spocStats.value.reduce((total, item) => total + item.value, 0))
 const spocChart = computed(() => ({
-  labels: ['Came for SPOC', 'Did not come for SPOC'],
-  datasets: [{ data: [spoc.value.spoc?.tender_value || 0, spoc.value.non_spoc?.tender_value || 0], backgroundColor: [palette[2], palette[3]], borderWidth: 0 }],
+  labels: spocStats.value.map(item => item.label),
+  datasets: [{
+    label: 'Recorded tender value',
+    data: spocStats.value.map(item => item.value),
+    backgroundColor: [palette[2], palette[3]],
+    borderRadius: 6,
+    borderSkipped: false,
+    barThickness: 30,
+  }],
 }))
 
 function portfolioChart(rows) {
@@ -268,12 +291,6 @@ function portfolioChart(rows) {
 
 const methodChart = computed(() => portfolioChart(methods.value))
 const categoryChart = computed(() => portfolioChart(categories.value))
-const doughnutOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  cutout: '62%',
-  plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } } },
-}
 const registrationBarOptions = {
   indexAxis: 'y',
   responsive: true,
@@ -340,6 +357,28 @@ const financeBarOptions = {
     y: { grid: { display: false } },
   },
 }
+const spocBarOptions = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: context => `${amount(context.raw)} recorded value (${percentageOf(context.raw, spocTotal.value)})`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      grid: { color: 'rgba(148, 163, 184, 0.18)' },
+      ticks: { callback: value => compact(value) },
+      title: { display: true, text: 'Recorded tender value' },
+    },
+    y: { grid: { display: false } },
+  },
+}
 const dualAxisOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -357,6 +396,7 @@ const compact = value => new Intl.NumberFormat('en-ZW', { notation: 'compact', m
 const percentage = value => `${new Intl.NumberFormat('en-ZW', { maximumFractionDigits: 1 }).format(Number(value || 0))}%`
 const percentageOf = (value, total) => percentage(Number(total || 0) > 0 ? (Number(value || 0) / Number(total)) * 100 : 0)
 const registrationPercentage = value => percentageOf(value, registrationTotal.value)
+const tenderLabel = value => `${integer(value)} ${Number(value || 0) === 1 ? 'tender' : 'tenders'}`
 
 async function loadDashboard() {
   loading.value = true
