@@ -80,12 +80,22 @@
         link="/admin-plan-dashboard"
         link-label="Open APP workspace"
       >
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <ActionCard label="Not assigned to handler" :value="integer(appQueue.unassigned_handler)" note="Needs ownership" icon="lucide:user-round-plus" tone="error" />
-          <ActionCard label="Being worked by handler" :value="integer(appQueue.handler)" note="Initial authority review" icon="lucide:briefcase-business" tone="info" />
-          <ActionCard label="Under manager review" :value="integer(appQueue.manager)" note="Recommendation review" icon="lucide:clipboard-check" tone="warning" />
-          <ActionCard label="Under approver review" :value="integer(appQueue.approver)" note="Final authority decision" icon="lucide:stamp" tone="success" />
-          <ActionCard label="Approved APPs" :value="integer(appQueue.approved)" note="Authorized or active plans" icon="lucide:circle-check-big" tone="success" />
+        <div class="grid gap-4 lg:grid-cols-[minmax(19rem,0.42fr)_minmax(0,1fr)]">
+          <div class="stats stats-vertical h-full w-full border border-base-300 bg-base-100">
+            <div v-for="item in appQueueStats" :key="item.label" class="stat py-3">
+              <div class="stat-figure" :class="item.tone"><Icon :name="item.icon" class="h-5 w-5" /></div>
+              <div class="stat-title">{{ item.label }}</div>
+              <div class="stat-value flex items-baseline gap-2 text-2xl" :class="item.tone">
+                <span>{{ integer(item.value) }}</span>
+                <span class="text-sm font-semibold">{{ percentageOf(item.value, appQueueTotal) }}</span>
+              </div>
+              <div class="stat-desc">{{ item.note }}</div>
+            </div>
+          </div>
+
+          <ChartCard title="Plans by workflow stage" subtitle="Number of APPs in each current stage">
+            <div class="h-[28rem]"><Bar :data="appQueueChart" :options="appQueueBarOptions" /></div>
+          </ChartCard>
         </div>
       </DashboardSection>
 
@@ -97,14 +107,21 @@
         link="/popverifications"
         link-label="Open verification queue"
       >
-        <div class="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-          <div class="grid gap-3 sm:grid-cols-3">
-            <StatCard label="Online channels" :value="amount(finance.online.total_amount)" :note="`${integer(finance.online.transaction_count)} verified transactions`" icon="lucide:credit-card" />
-            <StatCard label="Automatic bank verification" :value="amount(finance.automatic_bank.total_amount)" :note="`${integer(finance.automatic_bank.transaction_count)} CRM-matched transactions`" icon="lucide:bot" tone="success" />
-            <StatCard label="Manual bank verification" :value="amount(finance.manual_bank.total_amount)" :note="`${integer(finance.manual_bank.transaction_count)} officer-verified transactions`" icon="lucide:user-round-check" tone="warning" />
+        <div class="grid gap-4 lg:grid-cols-[minmax(19rem,0.42fr)_minmax(0,1fr)]">
+          <div class="stats stats-vertical h-full w-full border border-base-300 bg-base-100">
+            <div v-for="item in financeStats" :key="item.label" class="stat py-4">
+              <div class="stat-figure" :class="item.tone"><Icon :name="item.icon" class="h-5 w-5" /></div>
+              <div class="stat-title">{{ item.label }}</div>
+              <div class="stat-value flex items-baseline gap-2 text-2xl" :class="item.tone">
+                <span>{{ amount(item.value) }}</span>
+                <span class="text-sm font-semibold">{{ percentageOf(item.value, financeTotal) }}</span>
+              </div>
+              <div class="stat-desc">{{ item.note }}</div>
+            </div>
           </div>
-          <ChartCard title="Channel comparison" subtitle="Verified transaction value">
-            <div class="h-56"><Doughnut :data="financeChart" :options="doughnutOptions" /></div>
+
+          <ChartCard title="Channel comparison" subtitle="Verified transaction value by channel">
+            <div class="h-72"><Bar :data="financeChart" :options="financeBarOptions" /></div>
           </ChartCard>
         </div>
       </DashboardSection>
@@ -198,9 +215,41 @@ const registrationChart = computed(() => ({
     barThickness: 30,
   }],
 }))
+const appQueueStats = computed(() => [
+  { label: 'Not assigned to handler', value: Number(appQueue.value.unassigned_handler || 0), note: 'Needs ownership', icon: 'lucide:user-round-plus', tone: 'text-error' },
+  { label: 'Being worked by handler', value: Number(appQueue.value.handler || 0), note: 'Initial authority review', icon: 'lucide:briefcase-business', tone: 'text-info' },
+  { label: 'Under manager review', value: Number(appQueue.value.manager || 0), note: 'Recommendation review', icon: 'lucide:clipboard-check', tone: 'text-warning' },
+  { label: 'Under approver review', value: Number(appQueue.value.approver || 0), note: 'Final authority decision', icon: 'lucide:stamp', tone: 'text-success' },
+  { label: 'Approved APPs', value: Number(appQueue.value.approved || 0), note: 'Authorized or active plans', icon: 'lucide:circle-check-big', tone: 'text-primary' },
+])
+const appQueueTotal = computed(() => appQueueStats.value.reduce((total, item) => total + item.value, 0))
+const appQueueChart = computed(() => ({
+  labels: appQueueStats.value.map(item => item.label),
+  datasets: [{
+    label: 'APPs',
+    data: appQueueStats.value.map(item => item.value),
+    backgroundColor: ['#dc2626', '#0284c7', '#d97706', '#0f766e', '#16a34a'],
+    borderRadius: 6,
+    borderSkipped: false,
+    barThickness: 26,
+  }],
+}))
+const financeStats = computed(() => [
+  { label: 'Online channels', value: Number(finance.value.online?.total_amount || 0), note: `${integer(finance.value.online?.transaction_count)} verified transactions`, icon: 'lucide:credit-card', tone: 'text-primary' },
+  { label: 'Automatic bank verification', value: Number(finance.value.automatic_bank?.total_amount || 0), note: `${integer(finance.value.automatic_bank?.transaction_count)} CRM-matched transactions`, icon: 'lucide:bot', tone: 'text-success' },
+  { label: 'Manual bank verification', value: Number(finance.value.manual_bank?.total_amount || 0), note: `${integer(finance.value.manual_bank?.transaction_count)} officer-verified transactions`, icon: 'lucide:user-round-check', tone: 'text-warning' },
+])
+const financeTotal = computed(() => financeStats.value.reduce((total, item) => total + item.value, 0))
 const financeChart = computed(() => ({
-  labels: ['Online', 'Automatic bank', 'Manual bank'],
-  datasets: [{ data: [finance.value.online?.total_amount || 0, finance.value.automatic_bank?.total_amount || 0, finance.value.manual_bank?.total_amount || 0], backgroundColor: [palette[0], palette[1], palette[2]], borderWidth: 0 }],
+  labels: financeStats.value.map(item => item.label),
+  datasets: [{
+    label: 'Verified value',
+    data: financeStats.value.map(item => item.value),
+    backgroundColor: [palette[0], palette[1], palette[2]],
+    borderRadius: 6,
+    borderSkipped: false,
+    barThickness: 30,
+  }],
 }))
 const spocChart = computed(() => ({
   labels: ['Came for SPOC', 'Did not come for SPOC'],
@@ -247,6 +296,50 @@ const registrationBarOptions = {
     y: { grid: { display: false } },
   },
 }
+const appQueueBarOptions = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: context => `${integer(context.raw)} APPs (${percentageOf(context.raw, appQueueTotal.value)})`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      grid: { color: 'rgba(148, 163, 184, 0.18)' },
+      ticks: { precision: 0 },
+      title: { display: true, text: 'Number of APPs' },
+    },
+    y: { grid: { display: false } },
+  },
+}
+const financeBarOptions = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: context => `${amount(context.raw)} verified value (${percentageOf(context.raw, financeTotal.value)})`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      grid: { color: 'rgba(148, 163, 184, 0.18)' },
+      ticks: { callback: value => compact(value) },
+      title: { display: true, text: 'Verified transaction value' },
+    },
+    y: { grid: { display: false } },
+  },
+}
 const dualAxisOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -262,7 +355,8 @@ const integer = value => new Intl.NumberFormat('en-ZW', { maximumFractionDigits:
 const amount = value => new Intl.NumberFormat('en-ZW', { maximumFractionDigits: 2 }).format(Number(value || 0))
 const compact = value => new Intl.NumberFormat('en-ZW', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value || 0))
 const percentage = value => `${new Intl.NumberFormat('en-ZW', { maximumFractionDigits: 1 }).format(Number(value || 0))}%`
-const registrationPercentage = value => percentage(registrationTotal.value > 0 ? (Number(value || 0) / registrationTotal.value) * 100 : 0)
+const percentageOf = (value, total) => percentage(Number(total || 0) > 0 ? (Number(value || 0) / Number(total)) * 100 : 0)
+const registrationPercentage = value => percentageOf(value, registrationTotal.value)
 
 async function loadDashboard() {
   loading.value = true
