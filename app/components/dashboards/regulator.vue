@@ -29,21 +29,36 @@
       </section>
 
       <DashboardSection
-        eyebrow="Supplier registrations"
-        title="Registration verification"
-        description="Registration volumes and the route used to complete verification."
+        title="Registrations Statistics"
+        description="Registration volumes and how completed applications were verified."
         icon="lucide:user-round-check"
         link="/registrations/suppliers"
         link-label="Open registration queue"
       >
-        <div class="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-          <div class="grid gap-3 sm:grid-cols-3">
-            <StatCard label="Total registrations" :value="integer(registrations.total)" note="Received in the selected year" icon="lucide:files" />
-            <StatCard label="Automatically verified" :value="integer(registrations.automatically_verified)" note="Cleared by Companies and Deeds checks" icon="lucide:badge-check" tone="success" />
-            <StatCard label="Manually verified" :value="integer(registrations.manually_verified)" note="Approved through officer review" icon="lucide:user-check" tone="warning" />
+        <div class="space-y-4">
+          <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
+            <div class="stat">
+              <div class="stat-figure text-primary"><Icon name="lucide:files" class="h-5 w-5" /></div>
+              <div class="stat-title">Total registrations</div>
+              <div class="stat-value text-2xl">{{ integer(registrations.total) }}</div>
+              <div class="stat-desc">Received in {{ selectedYear }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-figure text-success"><Icon name="lucide:badge-check" class="h-5 w-5" /></div>
+              <div class="stat-title">Automatically verified</div>
+              <div class="stat-value text-2xl text-success">{{ integer(registrations.automatically_verified) }}</div>
+              <div class="stat-desc">Companies and Deeds checks</div>
+            </div>
+            <div class="stat">
+              <div class="stat-figure text-warning"><Icon name="lucide:user-check" class="h-5 w-5" /></div>
+              <div class="stat-title">Manually verified</div>
+              <div class="stat-value text-2xl text-warning">{{ integer(registrations.manually_verified) }}</div>
+              <div class="stat-desc">Completed through officer review</div>
+            </div>
           </div>
-          <ChartCard title="Automatic vs manual" subtitle="Approved registrations">
-            <div class="h-56"><Doughnut :data="registrationChart" :options="doughnutOptions" /></div>
+
+          <ChartCard title="Verification method" subtitle="Completed registrations by verification route">
+            <div class="h-52 sm:h-56"><Bar :data="registrationChart" :options="registrationBarOptions" /></div>
           </ChartCard>
         </div>
       </DashboardSection>
@@ -156,8 +171,15 @@ const overviewCards = computed(() => [
 
 const palette = ['#2563eb', '#16a34a', '#d97706', '#64748b']
 const registrationChart = computed(() => ({
-  labels: ['Automatic', 'Manual'],
-  datasets: [{ data: [registrations.value.automatically_verified || 0, registrations.value.manually_verified || 0], backgroundColor: [palette[1], palette[2]], borderWidth: 0 }],
+  labels: ['Automatically verified', 'Manually verified'],
+  datasets: [{
+    label: 'Registrations',
+    data: [registrations.value.automatically_verified || 0, registrations.value.manually_verified || 0],
+    backgroundColor: [palette[1], palette[2]],
+    borderRadius: 6,
+    borderSkipped: false,
+    barThickness: 30,
+  }],
 }))
 const financeChart = computed(() => ({
   labels: ['Online', 'Automatic bank', 'Manual bank'],
@@ -185,6 +207,28 @@ const doughnutOptions = {
   maintainAspectRatio: false,
   cutout: '62%',
   plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } } },
+}
+const registrationBarOptions = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: context => `${integer(context.raw)} registrations`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+      grid: { color: 'rgba(148, 163, 184, 0.18)' },
+      ticks: { precision: 0 },
+      title: { display: true, text: 'Number of registrations' },
+    },
+    y: { grid: { display: false } },
+  },
 }
 const dualAxisOptions = {
   responsive: true,

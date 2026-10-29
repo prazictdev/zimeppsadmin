@@ -32,7 +32,7 @@
         <li>
           <NuxtLink
             to="/"
-            :class="['gap-2 rounded-md', route.path === '/' ? 'bg-accent text-accent-content' : '']"
+            :class="['gap-2 rounded-md', route.path === '/' ? 'bg-primary text-primary-content' : '']"
             @click="$emit('close')"
           >
             <Icon name="lucide:home" class="h-4 w-4 shrink-0" />
@@ -50,7 +50,7 @@
               <li v-for="submodule in module.submodules" :key="submodule.id">
                 <NuxtLink
                   :to="submodule.url"
-                  :class="['gap-2 rounded-md text-sm', route.path === submodule.url ? 'bg-accent text-accent-content' : '']"
+                  :class="['gap-2 rounded-md text-sm', route.path === submodule.url ? 'bg-primary text-primary-content' : '']"
                   @click="$emit('close')"
                 >
                   <Icon :name="submodule.icon" class="h-4 w-4 shrink-0" />
