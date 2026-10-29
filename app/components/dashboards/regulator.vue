@@ -190,8 +190,8 @@ const registrationPercentages = computed(() => registrationCounts.value.map(valu
 const registrationChart = computed(() => ({
   labels: ['Automatically verified', 'Manually verified'],
   datasets: [{
-    label: 'Share of registrations',
-    data: registrationPercentages.value,
+    label: 'Registrations',
+    data: registrationCounts.value,
     backgroundColor: [palette[1], palette[2]],
     borderRadius: 6,
     borderSkipped: false,
@@ -233,17 +233,16 @@ const registrationBarOptions = {
     legend: { display: false },
     tooltip: {
       callbacks: {
-        label: context => `${integer(registrationCounts.value[context.dataIndex])} registrations (${percentage(context.raw)})`,
+        label: context => `${integer(context.raw)} registrations (${percentage(registrationPercentages.value[context.dataIndex])})`,
       },
     },
   },
   scales: {
     x: {
       beginAtZero: true,
-      max: 100,
       grid: { color: 'rgba(148, 163, 184, 0.18)' },
-      ticks: { callback: value => `${value}%` },
-      title: { display: true, text: 'Share of total registrations' },
+      ticks: { precision: 0 },
+      title: { display: true, text: 'Number of registrations' },
     },
     y: { grid: { display: false } },
   },
