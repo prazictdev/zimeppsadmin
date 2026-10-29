@@ -35,30 +35,39 @@
         link="/registrations/suppliers"
         link-label="Open registration queue"
       >
-        <div class="space-y-4">
-          <div class="stats stats-vertical w-full border border-base-300 bg-base-100 sm:stats-horizontal">
+        <div class="grid gap-4 lg:grid-cols-[minmax(17rem,0.38fr)_minmax(0,1fr)]">
+          <div class="stats stats-vertical h-full w-full border border-base-300 bg-base-100">
             <div class="stat">
               <div class="stat-figure text-primary"><Icon name="lucide:files" class="h-5 w-5" /></div>
               <div class="stat-title">Total registrations</div>
-              <div class="stat-value text-2xl">{{ integer(registrations.total) }}</div>
+              <div class="stat-value flex items-baseline gap-2 text-2xl">
+                <span>{{ integer(registrations.total) }}</span>
+                <span class="text-sm font-semibold text-base-content/50">{{ registrationPercentage(registrations.total) }}</span>
+              </div>
               <div class="stat-desc">Received in {{ selectedYear }}</div>
             </div>
             <div class="stat">
               <div class="stat-figure text-success"><Icon name="lucide:badge-check" class="h-5 w-5" /></div>
               <div class="stat-title">Automatically verified</div>
-              <div class="stat-value text-2xl text-success">{{ integer(registrations.automatically_verified) }}</div>
+              <div class="stat-value flex items-baseline gap-2 text-2xl text-success">
+                <span>{{ integer(registrations.automatically_verified) }}</span>
+                <span class="text-sm font-semibold">{{ registrationPercentage(registrations.automatically_verified) }}</span>
+              </div>
               <div class="stat-desc">Companies and Deeds checks</div>
             </div>
             <div class="stat">
               <div class="stat-figure text-warning"><Icon name="lucide:user-check" class="h-5 w-5" /></div>
               <div class="stat-title">Manually verified</div>
-              <div class="stat-value text-2xl text-warning">{{ integer(registrations.manually_verified) }}</div>
+              <div class="stat-value flex items-baseline gap-2 text-2xl text-warning">
+                <span>{{ integer(registrations.manually_verified) }}</span>
+                <span class="text-sm font-semibold">{{ registrationPercentage(registrations.manually_verified) }}</span>
+              </div>
               <div class="stat-desc">Completed through officer review</div>
             </div>
           </div>
 
           <ChartCard title="Verification method" subtitle="Completed registrations by verification route">
-            <div class="h-52 sm:h-56"><Bar :data="registrationChart" :options="registrationBarOptions" /></div>
+            <div class="h-64"><Bar :data="registrationChart" :options="registrationBarOptions" /></div>
           </ChartCard>
         </div>
       </DashboardSection>
@@ -170,11 +179,19 @@ const overviewCards = computed(() => [
 ])
 
 const palette = ['#2563eb', '#16a34a', '#d97706', '#64748b']
+const registrationCounts = computed(() => [
+  Number(registrations.value.automatically_verified || 0),
+  Number(registrations.value.manually_verified || 0),
+])
+const registrationTotal = computed(() => Number(registrations.value.total || 0))
+const registrationPercentages = computed(() => registrationCounts.value.map(value => (
+  registrationTotal.value > 0 ? (value / registrationTotal.value) * 100 : 0
+)))
 const registrationChart = computed(() => ({
   labels: ['Automatically verified', 'Manually verified'],
   datasets: [{
-    label: 'Registrations',
-    data: [registrations.value.automatically_verified || 0, registrations.value.manually_verified || 0],
+    label: 'Share of registrations',
+    data: registrationPercentages.value,
     backgroundColor: [palette[1], palette[2]],
     borderRadius: 6,
     borderSkipped: false,
@@ -216,16 +233,17 @@ const registrationBarOptions = {
     legend: { display: false },
     tooltip: {
       callbacks: {
-        label: context => `${integer(context.raw)} registrations`,
+        label: context => `${integer(registrationCounts.value[context.dataIndex])} registrations (${percentage(context.raw)})`,
       },
     },
   },
   scales: {
     x: {
       beginAtZero: true,
+      max: 100,
       grid: { color: 'rgba(148, 163, 184, 0.18)' },
-      ticks: { precision: 0 },
-      title: { display: true, text: 'Number of registrations' },
+      ticks: { callback: value => `${value}%` },
+      title: { display: true, text: 'Share of total registrations' },
     },
     y: { grid: { display: false } },
   },
@@ -244,6 +262,8 @@ const dualAxisOptions = {
 const integer = value => new Intl.NumberFormat('en-ZW', { maximumFractionDigits: 0 }).format(Number(value || 0))
 const amount = value => new Intl.NumberFormat('en-ZW', { maximumFractionDigits: 2 }).format(Number(value || 0))
 const compact = value => new Intl.NumberFormat('en-ZW', { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value || 0))
+const percentage = value => `${new Intl.NumberFormat('en-ZW', { maximumFractionDigits: 1 }).format(Number(value || 0))}%`
+const registrationPercentage = value => percentage(registrationTotal.value > 0 ? (Number(value || 0) / registrationTotal.value) * 100 : 0)
 
 async function loadDashboard() {
   loading.value = true
