@@ -334,6 +334,9 @@
                   <th></th>
                   <th>Ref / STAN</th>
                   <th>Source reference</th>
+                  <th>Bank account</th>
+                  <th>Account type</th>
+                  <th>Status</th>
                   <th>Description</th>
                   <th class="text-right">Amount</th>
                   <th>Date</th>
@@ -363,6 +366,20 @@
                     {{ c.sourcereference || '—' }}
                     <Icon v-if="c.sourcereference_exact_match" name="lucide:check-circle" class="h-3 w-3 inline text-success" title="Source ref exact match" />
                   </td>
+                  <td class="text-xs">
+                    <span class="block">{{ c.bank || '—' }}</span>
+                    <span class="font-mono text-base-content/60">{{ c.bank_account || '—' }}</span>
+                  </td>
+                  <td>
+                    <span
+                      v-if="c.bank_account_type"
+                      :class="['badge badge-sm badge-soft', c.refundable ? 'badge-info' : 'badge-warning']"
+                    >
+                      {{ c.refundable ? 'Refundable' : 'Non-refundable' }}
+                    </span>
+                    <span v-else class="text-base-content/40">—</span>
+                  </td>
+                  <td><span class="badge badge-success badge-soft badge-sm">{{ c.status || 'PENDING' }}</span></td>
                   <td class="text-xs max-w-xs truncate" :title="c.description">{{ c.description || '—' }}</td>
                   <td class="text-right font-mono">{{ c.currency }} {{ formatAmount(c.amount) }}</td>
                   <td class="text-xs">{{ c.transactiondate || '—' }}</td>
@@ -374,6 +391,15 @@
               </tbody>
             </table>
           </div>
+        </div>
+
+        <div
+          v-if="claimFeedback"
+          role="alert"
+          :class="['alert mt-3 alert-soft', claimFeedback.type === 'error' ? 'alert-error' : 'alert-success']"
+        >
+          <Icon :name="claimFeedback.type === 'error' ? 'lucide:circle-alert' : 'lucide:circle-check'" class="h-5 w-5" />
+          <span>{{ claimFeedback.message }}</span>
         </div>
 
         <fieldset class="fieldset mt-3">
@@ -436,6 +462,7 @@ definePageMeta({ layout: 'default' })
 useHead({ title: 'POP Verifications' })
 
 const helper = usePopVerificationHelper()
+const toast = useToast()
 const { can } = useCheckPermission()
 const canAccess = computed(() => can('can.verify.payments'))
 
@@ -455,6 +482,7 @@ const wallet = ref([])
 const searching = ref(false)
 const selectedBtId = ref(null)
 const manualQuery = ref('')
+const claimFeedback = ref(null)
 const searchMode = ref('auto')   // 'auto' (scored) or 'manual' (LIKE search)
 const nowTick = ref(Date.now())
 let searchTimer = null
@@ -636,6 +664,7 @@ const openVerify = (inv) => {
   wallet.value = []
   selectedBtId.value = null
   manualQuery.value = ''
+  claimFeedback.value = null
   searchMode.value = 'auto'
   document.getElementById('pop_verify_modal').showModal()
   runSearch()
@@ -646,12 +675,13 @@ const runSearch = async () => {
   if (!activeInvoice.value) return
   searchMode.value = 'auto'
   selectedBtId.value = null
+  claimFeedback.value = null
   searching.value = true
   const { data, error } = await helper.searchBankTransactions(activeInvoice.value.id)
   searching.value = false
   if (!error.value) {
     const payload = data.value?.data ?? {}
-    candidates.value = payload.results ?? []
+    candidates.value = claimableTransactions(payload.results)
     pop.value = payload.pop ?? pop.value
     wallet.value = payload.wallet ?? []
   } else {
@@ -665,11 +695,12 @@ const runManualSearch = async () => {
   if (q.length < 3) return
   searchMode.value = 'manual'
   selectedBtId.value = null
+  claimFeedback.value = null
   searching.value = true
   const { data, error } = await helper.manualBankSearch(activeInvoice.value.id, q)
   searching.value = false
   if (!error.value) {
-    candidates.value = data.value?.data?.results ?? []
+    candidates.value = claimableTransactions(data.value?.data?.results)
   } else {
     candidates.value = []
   }
@@ -686,15 +717,27 @@ const closeCancel = () => document.getElementById('pop_cancel_modal').close()
 const confirmClaimAndSettle = async () => {
   if (!activeInvoice.value || !selectedBtId.value) return
   busy.value = true
-  const { error } = await helper.claimAndSettle(activeInvoice.value.id, {
+  claimFeedback.value = null
+  const { data, error } = await helper.claimAndSettle(activeInvoice.value.id, {
     bank_transaction_id: selectedBtId.value,
     notes: verifyNotes.value || null,
   })
   busy.value = false
-  if (!error.value) {
-    closeVerify()
-    await fetchList(meta.value.current_page)
+  if (error.value) {
+    const message = error.value?.data?.message || error.value?.message || 'The bank transaction could not be claimed.'
+    const failedSearchMode = searchMode.value
+    toast.error({ title: 'Claim failed', message, position: 'topRight', layout: 2 })
+    if (failedSearchMode === 'manual') await runManualSearch()
+    else await runSearch()
+    claimFeedback.value = { type: 'error', message }
+    return
   }
+
+  const message = data.value?.message || 'Bank transaction claimed and invoice settled successfully.'
+  claimFeedback.value = { type: 'success', message }
+  toast.success({ title: 'Claim successful', message, position: 'topRight', layout: 2 })
+  closeVerify()
+  await fetchList(meta.value.current_page)
 }
 
 
@@ -719,6 +762,9 @@ const formatAmount = (v) => {
   if (!Number.isFinite(n)) return '—'
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+const claimableTransactions = (rows) => (Array.isArray(rows) ? rows : [])
+  .filter(row => !row.status || String(row.status).toUpperCase() === 'PENDING')
 
 const formatDate = (v) => {
   if (!v) return '—'
