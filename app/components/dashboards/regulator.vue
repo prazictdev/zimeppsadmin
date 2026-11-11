@@ -10,9 +10,8 @@
     </div>
 
     <template v-else>
-      <section aria-labelledby="regulator-overview-heading">
-        <div class="mb-3 flex items-end justify-between">
-          <div><p class="text-sm font-medium text-primary">Authority overview</p><h2 id="regulator-overview-heading" class="mt-1 text-lg font-bold">Current operational position</h2></div>
+      <section aria-label="Operational overview">
+        <div class="mb-3 flex justify-end">
           <span class="text-xs text-base-content/45">Selected reporting year</span>
         </div>
         <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
