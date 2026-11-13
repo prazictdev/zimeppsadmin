@@ -207,6 +207,15 @@ const visibleModules = computed(() => {
     })
   }
 
+  if (can('can.access.systemaudits') && !configuredUrls.has('/system-audits')) {
+    configuredModules.push({
+      id: 'system-audit',
+      name: 'Audit & compliance',
+      icon: 'lucide:shield-check',
+      submodules: [{ id: 'system-audit-explorer', name: 'System audit', url: '/system-audits', icon: 'lucide:scan-search' }],
+    })
+  }
+
   return configuredModules
 })
 
