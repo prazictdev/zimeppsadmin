@@ -28,7 +28,7 @@
 
     <!-- Nav links -->
     <nav class="flex-1 overflow-y-auto px-3 py-4">
-      <ul class="menu w-full gap-1 p-0">
+      <ul v-if="isRegulator" class="menu w-full gap-1 p-0">
         <li>
           <NuxtLink
             to="/"
@@ -85,6 +85,12 @@ const modules = ref([])
 if (user.value) {
   modules.value = user.value.data.modules
 }
+
+const isRegulator = computed(() =>
+  (user.value?.data?.account_types ?? []).some(accountType =>
+    String(accountType?.name ?? '').toLowerCase().includes('regulator')
+  )
+)
 
 const removedFinanceClients = new Set([
   'currencies',
