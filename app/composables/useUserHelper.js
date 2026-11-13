@@ -34,6 +34,25 @@ export const useUserHelper = () => {
     }
   };
 
+  const getAccountOptions = async (search = '') => {
+    const qs = buildQuery({ search, limit: 30 });
+    try {
+      const data = await client(`/api/v1/users/account-options?${qs}`, { method: 'GET' });
+      return { ok: true, data: data?.data ?? [], error: null };
+    } catch (err) {
+      return { ok: false, data: [], error: extractError(err, 'Failed to load account options.') };
+    }
+  };
+
+  const getRoleOptions = async () => {
+    try {
+      const data = await client('/api/v1/users/role-options', { method: 'GET' });
+      return { ok: true, data: data?.data ?? [], error: null };
+    } catch (err) {
+      return { ok: false, data: [], error: extractError(err, 'Failed to load role options.') };
+    }
+  };
+
   const createUser = async (payload) => {
     try {
       const data = await client('/api/v1/users', { method: 'POST', body: payload });
@@ -115,6 +134,8 @@ export const useUserHelper = () => {
   return {
     getUsers,
     getUser,
+    getAccountOptions,
+    getRoleOptions,
     createUser,
     updateUser,
     deleteUser,
