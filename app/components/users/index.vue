@@ -68,7 +68,7 @@
                   <button v-if="canEdit" class="btn btn-ghost btn-sm" title="Send password reset" @click="requestPasswordReset(user)">
                     <Icon name="lucide:mail-key" class="h-4 w-4" />
                   </button>
-                  <button v-if="canDelete && user.id !== currentUserId" class="btn btn-ghost btn-sm text-error" title="Delete user" @click="openDelete(user)">
+                  <button v-if="canDelete && !isCurrentUser(user)" class="btn btn-ghost btn-sm text-error" title="Remove user" @click="openDelete(user)">
                     <Icon name="lucide:trash-2" class="h-4 w-4" />
                   </button>
                 </div>
@@ -140,12 +140,21 @@
 
     <dialog ref="deleteDialog" class="modal">
       <div class="modal-box">
-        <h2 class="text-xl font-bold">Delete system user?</h2>
-        <p class="mt-2 text-sm text-base-content/70">This permanently removes {{ fullName(selectedUser) }} and detaches all linked accounts and roles.</p>
+        <div class="flex items-start gap-3">
+          <div class="rounded-full bg-error/10 p-2 text-error"><Icon name="lucide:triangle-alert" class="h-5 w-5" /></div>
+          <div>
+            <h2 class="text-xl font-bold">Remove system user?</h2>
+            <p class="mt-1 text-sm text-base-content/70">You are about to remove access for <strong>{{ fullName(selectedUser) }}</strong>.</p>
+          </div>
+        </div>
+        <div role="alert" class="alert alert-warning mt-4 items-start">
+          <Icon name="lucide:info" class="h-5 w-5" />
+          <span class="text-sm">Users with transaction history are deactivated and retained for audit purposes. Users without transaction history are permanently deleted. You cannot remove your own account.</span>
+        </div>
         <div class="modal-action">
           <button class="btn" @click="deleteDialog.close()">Cancel</button>
           <button class="btn btn-error" :disabled="submitting" @click="confirmDelete">
-            <span v-if="submitting" class="loading loading-spinner loading-xs" /> Delete user
+            <span v-if="submitting" class="loading loading-spinner loading-xs" /> Remove user
           </button>
         </div>
       </div>
@@ -189,6 +198,7 @@ const availableAccounts = computed(() => {
 
 const fullName = user => [user?.name, user?.middlename, user?.lastname].filter(Boolean).join(' ') || 'Unknown user';
 const initials = user => `${user?.name?.[0] ?? ''}${user?.lastname?.[0] ?? ''}`.toUpperCase() || 'U';
+const isCurrentUser = user => Number(user?.id) === Number(currentUserId.value);
 
 const queueSearch = () => {
   clearTimeout(searchTimer);

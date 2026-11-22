@@ -17,7 +17,7 @@
             <td class="text-sm">{{ user.email }}</td>
             <td class="capitalize">{{ user.gender ?? '—' }}</td>
             <td><span :class="['badge badge-sm', user.status === 'active' ? 'badge-success' : 'badge-ghost']">{{ user.status ?? 'unknown' }}</span></td>
-            <td><div class="flex justify-end gap-1"><AdminuserEdit v-if="can('can.edit.users')" :user="user" :company="company" @refreshcompany="handleRefreshCompany" /><AdminuserAccess v-if="can('can.edit.users')" :user="user" :company="company" @refreshuser="handleRefreshCompany" /><AdminuserDelete v-if="can('can.delete.users')" :user="user" @refreshcompany="handleRefreshCompany" /><AdminuserReset v-if="can('can.edit.users')" :user="user" @refreshcompany="handleRefreshCompany" /></div></td>
+            <td><div class="flex justify-end gap-1"><AdminuserEdit v-if="can('can.edit.users')" :user="user" :company="company" @refreshcompany="handleRefreshCompany" /><AdminuserAccess v-if="can('can.edit.users')" :user="user" :company="company" @refreshuser="handleRefreshCompany" /><AdminuserDelete v-if="can('can.delete.users') && !isCurrentUser(user)" :user="user" @refreshcompany="handleRefreshCompany" /><AdminuserReset v-if="can('can.edit.users')" :user="user" @refreshcompany="handleRefreshCompany" /></div></td>
           </tr>
         </tbody>
       </table>
@@ -35,6 +35,8 @@ const props = defineProps({
 const emit = defineEmits(['refreshcompany'])
 const search = ref('')
 const { can } = useAbility()
+const { user: authenticatedUser } = useSanctumAuth()
+const currentUserId = computed(() => authenticatedUser.value?.data?.user?.id ?? null)
 
 const filteredUsers = computed(() => {
   const users = props.company?.users ?? []
@@ -49,6 +51,10 @@ function getUserFullName(user) {
 
 function initials(user) {
   return [user.name, user.lastname].filter(Boolean).map(value => value.charAt(0).toUpperCase()).join('').slice(0, 2) || 'U'
+}
+
+function isCurrentUser(user) {
+  return Number(user?.id) === Number(currentUserId.value)
 }
 
 function handleRefreshCompany() {

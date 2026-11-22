@@ -106,7 +106,11 @@ export const useUserStore = defineStore('users', () => {
       notifyError('User deletion failed', error);
       return false;
     }
-    toast.success({ title: 'User deleted', message: data?.message ?? 'The user was deleted.' });
+    const wasDeactivated = data?.data?.action === 'deactivated';
+    toast.success({
+      title: wasDeactivated ? 'User deactivated' : 'User deleted',
+      message: data?.message ?? 'User access was removed.',
+    });
     await fetchUsers(currentPage.value);
     return true;
   };
