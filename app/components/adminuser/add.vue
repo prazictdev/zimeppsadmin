@@ -101,7 +101,7 @@
 
          
           <div class="modal-action">
-            <button class="btn" type="button" onclick="new_companycategory_modal.close()">
+            <button class="btn" type="button" @click="closeCreateModal">
               Close
             </button>
             <button class="btn btn-primary" type="submit" :disabled="submitting">
@@ -133,14 +133,14 @@ const form = ref({
     email: '',
     middlename: '',
     phone: '',
-    company_id: props?.company?.id ?? '',
+    company_id: props.company.id,
 });
 const errors = reactive({
     name: '',
     lastname: '',
     gender: '',
     email: '',
-    middlename: '',
+    company_id: '',
     phone: '',
     middlename: '',
 });
@@ -160,7 +160,7 @@ const handleSubmit = async () => {
     errors.phone = '';
     try {
         submitting.value = true;
-        form.value.company_id = props.company?.id;
+        form.value.company_id = props.company.id;
         const validData = await UserSchema.validate(form.value, { abortEarly: false });
        const { ok, data, error } = await userHelper.createUser(validData);
        if (ok) {
@@ -182,7 +182,6 @@ const handleSubmit = async () => {
        }
       
     } catch (err) {
-       console.log(err);
         if (err?.inner?.length) {
       err.inner.forEach((e) => {
         if (e.path && Object.prototype.hasOwnProperty.call(errors, e.path)) {
@@ -214,7 +213,7 @@ const resetForm = () => {
         email: '',
         middlename: '',
         phone: '',
-        company_id: props.company?.id,
+        company_id: props.company.id,
     }
 }
 </script>

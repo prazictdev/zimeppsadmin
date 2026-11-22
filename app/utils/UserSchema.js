@@ -6,5 +6,5 @@ export const UserSchema = yup.object().shape({
   email: yup.string().email('Enter a valid email').required('Email is required').max(255),
   phone: yup.string().required('Phone is required').max(255),
   middlename: yup.string().nullable().max(255),
-  company_ids: yup.array().of(yup.number().integer()).min(1, 'Select at least one linked account').required(),
+  company_id: yup.number().integer().required('Select a company'),
 });

@@ -43,7 +43,7 @@
     </div>
 
     <fieldset class="fieldset">
-      <legend class="fieldset-legend">Linked accounts</legend>
+      <legend class="fieldset-legend">Company</legend>
       <label class="input w-full">
         <Icon name="lucide:search" class="h-4 w-4 opacity-50" />
         <input v-model.trim="accountSearch" type="search" placeholder="Search account name or registration number" @input="queueAccountSearch" />
@@ -51,7 +51,7 @@
       </label>
       <div class="max-h-52 overflow-y-auto rounded-box border border-base-300 bg-base-100 p-2">
         <label v-for="account in accounts" :key="account.id" class="flex cursor-pointer items-start gap-3 rounded-selector px-3 py-2 hover:bg-base-200">
-          <input v-model="form.company_ids" type="checkbox" class="checkbox checkbox-sm mt-0.5" :value="account.id" />
+          <input v-model="form.company_id" type="radio" name="user-company" class="radio radio-sm mt-0.5" :value="account.id" />
           <span class="min-w-0">
             <span class="block truncate text-sm font-medium">{{ account.name }}</span>
             <span class="block text-xs text-base-content/60">
@@ -64,8 +64,7 @@
           No accounts match your search.
         </p>
       </div>
-      <p v-if="errors.company_ids" class="label text-error">{{ errors.company_ids }}</p>
-      <p class="label">Selected accounts: {{ form.company_ids.length }}</p>
+      <p v-if="errors.company_id" class="label text-error">{{ errors.company_id }}</p>
     </fieldset>
 
     <div class="modal-action">
@@ -98,7 +97,7 @@ const blankForm = () => ({
   gender: '',
   email: '',
   phone: '',
-  company_ids: [],
+  company_id: null,
 });
 
 const form = ref(blankForm());
@@ -115,7 +114,7 @@ watch(
           gender: String(user.gender ?? '').toLowerCase(),
           email: user.email ?? '',
           phone: user.phone ?? '',
-          company_ids: (user.companies ?? []).map(account => account.id),
+          company_id: user.companies?.[0]?.id ?? null,
         }
       : blankForm();
     Object.keys(errors).forEach(key => delete errors[key]);

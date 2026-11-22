@@ -4,7 +4,7 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="card-title">System users</h1>
-          <p class="text-sm text-base-content/60">Manage user profiles, linked accounts, roles, and password recovery.</p>
+          <p class="text-sm text-base-content/60">Manage user profiles, companies, roles, and password recovery.</p>
         </div>
         <button v-if="canAdd" class="btn btn-primary" @click="openCreate">
           <Icon name="lucide:user-plus" class="h-4 w-4" />
@@ -14,7 +14,7 @@
 
       <label class="input w-full sm:max-w-md">
         <Icon name="lucide:search" class="h-4 w-4 opacity-50" />
-        <input v-model.trim="searchValue" type="search" placeholder="Search users or linked accounts" @input="queueSearch" />
+        <input v-model.trim="searchValue" type="search" placeholder="Search users or companies" @input="queueSearch" />
       </label>
 
       <div class="overflow-x-auto rounded-box border border-base-200">
@@ -23,7 +23,7 @@
             <tr>
               <th>User</th>
               <th>Contact</th>
-              <th>Linked accounts</th>
+              <th>Company</th>
               <th>Roles</th>
               <th><span class="sr-only">Actions</span></th>
             </tr>
@@ -46,12 +46,10 @@
                 <p class="text-xs text-base-content/60">{{ user.phone || 'No phone number' }}</p>
               </td>
               <td class="min-w-64">
-                <div v-if="user.companies?.length" class="flex flex-wrap gap-1.5">
-                  <span v-for="account in user.companies" :key="account.id" class="badge badge-ghost badge-sm" :title="account.regnumber">
-                    {{ account.name }}
-                  </span>
-                </div>
-                <span v-else class="text-sm text-base-content/40">No linked account</span>
+                <span v-if="user.companies?.[0]" class="badge badge-ghost badge-sm" :title="user.companies[0].regnumber">
+                  {{ user.companies[0].name }}
+                </span>
+                <span v-else class="text-sm text-base-content/40">No company</span>
               </td>
               <td class="min-w-48">
                 <div v-if="user.roles?.length" class="flex flex-wrap gap-1.5">
@@ -101,7 +99,7 @@
         <div class="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold">{{ editingUser ? 'Edit system user' : 'Add system user' }}</h2>
-            <p class="text-sm text-base-content/60">{{ editingUser ? 'Update profile details and linked accounts.' : 'A temporary password will be emailed to the new user.' }}</p>
+            <p class="text-sm text-base-content/60">{{ editingUser ? 'Update profile details and company.' : 'A temporary password will be emailed to the new user.' }}</p>
           </div>
           <button class="btn btn-circle btn-ghost btn-sm" aria-label="Close" @click="closeUserDialog"><Icon name="lucide:x" /></button>
         </div>

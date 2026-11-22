@@ -98,7 +98,7 @@
 
          
           <div class="modal-action">
-            <button class="btn" type="button" onclick="new_companycategory_modal.close()">
+            <button class="btn" type="button" @click="closeEditModal">
               Close
             </button>
             <button class="btn btn-primary" type="submit" :disabled="submitting">
@@ -141,7 +141,7 @@ const errors = reactive({
     lastname: '',
     gender: '',
     email: '',
-    middlename: '',
+    company_id: '',
     phone: '',
     middlename: '',
 });
