@@ -4,7 +4,7 @@
             <Icon name="lucide:trash" />
             <span class="hidden md:block">Delete</span>
         </button>
-        <dialog :id="`delete_admin_user_modal_${user.id}`" class="modal">
+        <dialog ref="deleteModal" :id="`delete_admin_user_modal_${user.id}`" class="modal">
             <div class="modal-box">
                 <div class="flex justify-between">
                     <h3 class="text-lg font-bold">Delete User</h3>
@@ -18,7 +18,7 @@
                     </div>
                     <div class="modal-action">
                         <button class="btn" type="button" @click="closeDeleteModal">Close</button>
-                        <button class="btn btn-error" type="submit" :disabled="submitting" @click="handleSubmit">
+                        <button class="btn btn-error" type="submit" :disabled="submitting">
                             <span v-if="submitting">Deleting...</span>
                             <span v-else>Delete</span>
                         </button>
@@ -29,19 +29,21 @@
     </div>
 </template>
 <script setup>
-defineProps({
+const props = defineProps({
     user: {
         type: Object,
         required: true,
     },
 });
+const emit = defineEmits(['refreshcompany']);
 const userHelper = useUserHelper();
 const submitting = ref(false);
 const toast = useToast();
+const deleteModal = ref(null);
 const handleSubmit = async () => {
     try {
         submitting.value = true;
-       const { ok, error } = await userHelper.deleteUser(user.id);
+       const { ok, error } = await userHelper.deleteUser(props.user.id);
        if (ok) {
         toast.success({
             title: 'User deleted successfully',
@@ -50,6 +52,7 @@ const handleSubmit = async () => {
             layout: 2,
         });
         emit('refreshcompany');
+        closeDeleteModal();
        }else{
         toast.error({
             title: 'User deletion failed',
@@ -64,9 +67,9 @@ const handleSubmit = async () => {
     }
 };
 const openDeleteModal = () => {
-    document.getElementById(`delete_admin_user_modal_${user.id}`).showModal();
+    deleteModal.value?.showModal();
 };
 const closeDeleteModal = () => {
-    document.getElementById(`delete_admin_user_modal_${user.id}`).close();
+    deleteModal.value?.close();
 };
 </script>
