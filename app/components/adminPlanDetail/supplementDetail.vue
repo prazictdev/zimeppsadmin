@@ -10,7 +10,7 @@
         <div class="flex items-center justify-between border-b border-base-200 pb-2">
           <div>
             <h3 class="text-lg font-bold">
-              {{ supplement.title || 'Supplement' }}
+              {{ supplement.title || 'Plan change request' }}
               <span class="text-sm font-normal text-base-content/60">· {{ formatStatus(s?.status) }}</span>
             </h3>
             <p v-if="s?.reason" class="text-xs text-base-content/60 max-w-3xl">{{ s.reason }}</p>
@@ -31,8 +31,22 @@
         </div>
 
         <div v-else class="mt-3 space-y-4">
+          <section v-if="isAmendment" class="rounded border border-base-200">
+            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">Approved item amendment</div>
+            <div class="space-y-3 p-4">
+              <div><p class="font-mono text-xs text-base-content/55">{{ s.target_item?.reference_no }}</p><p class="font-semibold">{{ s.target_item?.description }}</p></div>
+              <div class="grid gap-3 sm:grid-cols-3">
+                <div v-for="field in amendmentFields" :key="field.key" class="rounded-box border border-base-200 p-3">
+                  <div class="text-xs text-base-content/55">{{ field.label }}</div>
+                  <div class="mt-2 flex items-center justify-between gap-2"><span class="font-mono">{{ formatAmount(s.before_values?.[field.key]) }}</span><Icon name="lucide:arrow-right" class="h-4 w-4 text-base-content/35" /><span class="font-mono font-bold text-primary">{{ formatAmount(s.proposed_values?.[field.key]) }}</span></div>
+                </div>
+              </div>
+              <div class="rounded-box bg-base-200/60 p-3"><div class="text-xs text-base-content/55">Reason</div><p class="mt-1 text-sm">{{ s.reason }}</p></div>
+            </div>
+          </section>
+
           <!-- Items -->
-          <section class="rounded border border-base-200">
+          <section v-else class="rounded border border-base-200">
             <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">
               Items ({{ s.items?.length ?? 0 }})
             </div>
@@ -128,6 +142,12 @@ const store = useAdminPlanStore();
 const dialogId = computed(() => `admin_supp_detail_${props.supplement.uuid}`);
 
 const s = computed(() => store.currentSupplement);
+const isAmendment = computed(() => s.value?.request_type === 'ITEM_AMENDMENT');
+const amendmentFields = [
+  { key: 'quantity', label: 'Quantity' },
+  { key: 'unit_cost', label: 'Unit cost' },
+  { key: 'total_cost', label: 'Total budget' },
+];
 const sortedRecs = computed(() =>
   [...(s.value?.recommendations ?? [])].sort((a, b) => (b.cycle ?? 0) - (a.cycle ?? 0)),
 );

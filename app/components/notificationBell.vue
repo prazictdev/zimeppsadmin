@@ -160,7 +160,7 @@ function notificationUrl(notification) {
   if (data.url) return data.url
   if (data.kind === 'tender_workflow' && data.tender_uuid) return `/tenders/${data.tender_uuid}`
   if (data.kind === 'lcs_workflow' && data.tender_uuid) return `/evaluations/least-cost-selection/${data.tender_uuid}`
-  if (data.kind === 'supplement_workflow' && data.plan_uuid) return `/admin-plan-dashboard/plans/${data.plan_uuid}?tab=supplements&supplement=${data.supplement_uuid}`
+  if (['supplement_workflow', 'item_amendment_workflow'].includes(data.kind) && data.plan_uuid) return `/admin-plan-dashboard/plans/${data.plan_uuid}?tab=supplements&supplement=${data.supplement_uuid}`
   return null
 }
 
@@ -179,6 +179,7 @@ function iconName(notification) {
   if (kind === 'tender_workflow') return 'lucide:file-check-2'
   if (kind === 'lcs_workflow') return 'lucide:scale'
   if (kind === 'supplement_workflow') return 'lucide:file-plus-2'
+  if (kind === 'item_amendment_workflow') return 'lucide:file-pen-line'
   return 'lucide:bell-ring'
 }
 
@@ -189,6 +190,7 @@ function iconClass(notification) {
   if (kind === 'tender_workflow') return 'bg-blue-100 text-blue-700'
   if (kind === 'lcs_workflow') return 'bg-amber-100 text-amber-700'
   if (kind === 'supplement_workflow') return 'bg-cyan-100 text-cyan-700'
+  if (kind === 'item_amendment_workflow') return 'bg-amber-100 text-amber-700'
   return 'bg-base-200 text-base-content/60'
 }
 

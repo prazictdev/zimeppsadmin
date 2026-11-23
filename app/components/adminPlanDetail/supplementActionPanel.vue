@@ -172,7 +172,7 @@ const commentRequired = computed(() => COMMENT_REQUIRED.has(activeAction.value))
 const actionLabel = (a) => ({
   manager_agree: 'Agree & forward to approver',
   manager_disagree: 'Disagree (send back to handler)',
-  approver_approve: 'Approve & merge into plan',
+  approver_approve: props.supplement.request_type === 'ITEM_AMENDMENT' ? 'Authorize & apply amendment' : 'Approve & merge into plan',
   approver_send_back_to_manager: 'Send back to manager',
   approver_send_back_to_pe: 'Send supplement back to PE',
 })[a] ?? a;
@@ -196,7 +196,7 @@ const actionClass = (a) => ({
 const actionDescription = (a) => ({
   manager_agree: 'Agree with the recommendation and forward to the approver.',
   manager_disagree: 'Disagree; the supplement returns to the handler. A comment is required.',
-  approver_approve: 'Approve and merge supplement items into the plan.',
+  approver_approve: props.supplement.request_type === 'ITEM_AMENDMENT' ? 'Authorize and apply the proposed values to the approved plan item.' : 'Approve and merge supplement items into the plan.',
   approver_send_back_to_manager: 'Bounce back to the manager. A comment is required.',
   approver_send_back_to_pe: 'Return the supplement to the PE for corrections. A comment is required.',
 })[a] ?? '';
