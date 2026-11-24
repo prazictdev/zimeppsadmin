@@ -52,7 +52,16 @@
           </section>
 
           <section class="rounded border border-base-200">
-            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">Schedule</div>
+            <div class="flex items-center justify-between gap-3 border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">
+              <span>Statutory procurement schedule</span>
+              <span :class="['badge badge-sm', scheduleBadge]">{{ displayedScheduleLabel }}</span>
+            </div>
+            <div v-if="schedule?.status === 'CONFIGURATION_MISSING'" class="border-b border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-content">
+              The legal time-limit configuration for this procurement method and group is incomplete. The remaining dates cannot be calculated yet.
+            </div>
+            <div v-else-if="schedule?.status === 'INCOMPLETE'" class="border-b border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-content">
+              This item has not yet produced a complete persisted schedule and cannot pass plan submission checks.
+            </div>
             <table class="table table-sm w-full">
               <tbody>
                 <tr><th class="w-1/3 text-base-content/60">EOI publication</th><td>{{ formatDate(item.eoi_publication_date) }}</td></tr>
@@ -61,10 +70,27 @@
                 <tr><th class="text-base-content/60">Bid closing</th><td>{{ formatDate(item.bid_closing_date) }}</td></tr>
                 <tr><th class="text-base-content/60">Award publication</th><td>{{ formatDate(item.publish_award_notice) }}</td></tr>
                 <tr><th class="text-base-content/60">Contract signing</th><td>{{ formatDate(item.contract_signing) }}</td></tr>
+                <tr><th class="text-base-content/60">Expected delivery</th><td>{{ formatDate(item.expected_delivery_date) }}</td></tr>
                 <tr><th class="text-base-content/60">Cycle days</th><td>{{ item.cycle_days ?? '—' }}</td></tr>
                 <tr><th class="text-base-content/60">Lead time days</th><td>{{ item.lead_time_days ?? '—' }}</td></tr>
               </tbody>
             </table>
+            <div v-if="schedule?.stages?.length" class="border-t border-base-200">
+              <div class="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-base-content/45">Legal-period assessment</div>
+              <div class="overflow-x-auto">
+                <table class="table table-sm">
+                  <thead><tr><th>Stage</th><th class="text-right">Required</th><th class="text-right">Planned</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr v-for="stage in schedule.stages" :key="stage.key">
+                      <td class="font-medium">{{ stage.label }}</td>
+                      <td class="text-right">{{ days(stage.required) }}</td>
+                      <td class="text-right">{{ days(stage.planned) }}</td>
+                      <td><span :class="['badge badge-xs', stageBadge(stage.status)]">{{ stageStatus(stage.status) }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </section>
 
           <section class="rounded border border-base-200">
@@ -102,6 +128,22 @@ const props = defineProps({
 });
 
 const effectiveAwardType = computed(() => props.awardType || props.item.award_type);
+const schedule = computed(() => props.item.schedule_requirements ?? null);
+const scheduleLabel = computed(() => ({
+  COMPLIANT: 'Meets configured periods',
+  NON_COMPLIANT: 'Below required period',
+  INCOMPLETE: 'Incomplete',
+  CONFIGURATION_MISSING: 'Configuration required',
+})[schedule.value?.status] || 'Not assessed');
+const displayedScheduleLabel = computed(() => schedule.value?.exemption_adjusted
+  ? `${scheduleLabel.value} · Exemption-adjusted`
+  : scheduleLabel.value);
+const scheduleBadge = computed(() => ({
+  COMPLIANT: 'badge-success',
+  NON_COMPLIANT: 'badge-error',
+  INCOMPLETE: 'badge-warning',
+  CONFIGURATION_MISSING: 'badge-warning',
+})[schedule.value?.status] || 'badge-ghost');
 
 const dialogId = computed(() => `admin_item_view_modal_${props.item.id}`);
 
@@ -133,5 +175,8 @@ const formatDate = (v) => {
 };
 
 const yesNo = (v) => (v ? 'Yes' : 'No');
+const days = value => value === null || value === undefined ? 'Not configured' : `${value} days`;
+const stageStatus = status => ({ pass: 'Meets minimum', fail: 'Below minimum', incomplete: 'Incomplete' })[status] || 'Not assessed';
+const stageBadge = status => ({ pass: 'badge-success', fail: 'badge-error', incomplete: 'badge-warning' })[status] || 'badge-ghost';
 const readable = value => String(value || '').replaceAll('_', ' ').toLowerCase().replace(/^\w/, char => char.toUpperCase());
 </script>
