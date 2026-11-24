@@ -12,6 +12,8 @@ test('server approval errors stay in the open dialog and a retry clears the erro
     export const closed = [];
     export let response = {ok: false, error: {data: {message: 'No authorization fee configured for this class.'}}};
     export const setResponse = value => response = value;
+    const useRoute = () => ({path: '/admin-plan-dashboard/plans/plan', query: {}});
+    const navigateTo = async () => {};
     const useAdminPlanHelper = () => new Proxy({}, {get: (_, key) => async () => {
       if (key === 'transition') { if (response === 'throw') throw new Error('Network failure'); return response; }
       return {ok: false};

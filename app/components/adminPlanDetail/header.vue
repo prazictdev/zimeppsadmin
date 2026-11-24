@@ -1,131 +1,83 @@
 <template>
-  <div class="overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm">
-    <div class="p-5">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div class="min-w-0">
-          <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-base-content/50">
-            <Icon name="lucide:clipboard-list" class="h-4 w-4" />
-            Annual Procurement Plan
+  <header class="overflow-x-auto rounded-xl border border-base-300 bg-base-100 shadow-sm">
+    <div class="flex min-w-max items-stretch border-l-4 border-success">
+      <div class="flex min-w-64 items-center gap-3 px-5 py-4">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
+          <Icon name="lucide:clipboard-list" class="h-5 w-5" />
+        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold">{{ store.plan?.year ?? '…' }}</h1>
+            <span v-if="store.plan?.procurementclass" class="badge badge-sm badge-outline">{{ store.plan.procurementclass.name }}</span>
           </div>
-          <h1 class="mt-1 flex flex-wrap items-baseline gap-x-3 text-2xl font-bold tracking-tight">
-            <span>{{ store.plan?.year ?? '…' }}</span>
-            <span class="text-base-content/25">/</span>
-            <span class="text-base-content/80">{{ store.plan?.company?.name ?? '' }}</span>
-          </h1>
-          <div class="mt-3 flex flex-wrap items-center gap-2">
-            <span :class="['badge badge-sm gap-1.5', stageBadge(store.plan?.status)]">
-              <Icon name="lucide:circle-dot" class="h-3.5 w-3.5" />
-              {{ formatStatus(store.plan?.status) }}
-            </span>
-            <span v-if="store.plan?.paymentstatus" :class="['badge badge-sm gap-1.5', paymentBadge(store.plan.paymentstatus)]">
-              <Icon name="lucide:credit-card" class="h-3.5 w-3.5" />
-              {{ formatStatus(store.plan.paymentstatus) }}
-            </span>
-            <span v-if="store.plan?.currency" class="badge badge-sm badge-outline gap-1.5">
-              <Icon name="lucide:coins" class="h-3.5 w-3.5" />
-              {{ store.plan.currency.code }}<template v-if="store.plan.currency.symbol"> · {{ store.plan.currency.symbol }}</template>
-            </span>
-            <span v-if="store.plan?.procurementclass" class="badge badge-sm badge-ghost gap-1.5">
-              <Icon name="lucide:shapes" class="h-3.5 w-3.5" />
-              {{ store.plan.procurementclass.name }}
-            </span>
-          </div>
-          <p v-if="store.plan?.notes?.class_approval" class="mt-2 text-sm text-base-content/60">
-            Applied for: {{ store.plan.notes.class_approval.applied_class_name || 'Not specified' }} · Approved as: {{ store.plan.notes.class_approval.approved_class_name }}
-          </p>
-          <div v-if="store.plan?.submitted_at" class="mt-3 flex items-center gap-1.5 text-xs text-base-content/50">
-            <Icon name="lucide:send" class="h-3.5 w-3.5" />
-            Submitted on {{ formatTime(store.plan.submitted_at) }}
-          </div>
-        </div>
-
-        <div v-if="store.plan?.uuid" class="flex flex-wrap items-center gap-2">
-          <AdminPlanDetailActionPanel :plan-uuid="store.plan.uuid" />
-          <AdminPlanDetailAnalyze :plan-uuid="store.plan.uuid" />
+          <p class="max-w-48 truncate text-xs text-base-content/55">{{ store.plan?.company?.name ?? '' }}</p>
         </div>
       </div>
 
-      <!-- Stat strip -->
-      <div class="mt-5 grid grid-cols-2 overflow-hidden rounded-lg border border-base-200 sm:grid-cols-4">
-        <div class="border-b border-r border-base-200 p-3 sm:border-b-0">
-          <div class="flex items-center gap-1.5 text-xs font-medium text-base-content/50">
-            <Icon name="lucide:wallet" class="h-4 w-4" /> Total Budget
-          </div>
-          <div class="mt-1 truncate font-mono text-xl font-bold" :title="formatAmount(planTotal)">
-            <span class="text-sm text-base-content/50">{{ currencySymbol }}</span>{{ formatAmount(planTotal) }}
-          </div>
+      <div class="flex items-center border-l border-base-200 px-5 py-4">
+        <span :class="['badge badge-sm whitespace-nowrap', stageBadge(store.plan?.status)]">{{ formatStatus(store.plan?.status) }}</span>
+      </div>
+
+      <div v-if="store.plan?.paymentstatus" class="flex items-center border-l border-base-200 px-5 py-4">
+        <span :class="['badge badge-sm whitespace-nowrap', paymentBadge(store.plan.paymentstatus)]">{{ formatStatus(store.plan.paymentstatus) }}</span>
+      </div>
+
+      <dl class="flex items-stretch">
+        <div class="flex min-w-60 items-center gap-3 border-l border-base-200 px-5 py-4">
+          <Icon name="lucide:wallet" class="h-4 w-4 text-base-content/40" />
+          <dt class="text-sm text-base-content/50">Total budget</dt>
+          <dd class="ml-auto whitespace-nowrap font-mono font-bold">
+            <span class="mr-1 text-xs text-base-content/50">{{ currencyCode }}</span>{{ formatAmount(planTotal) }}
+          </dd>
         </div>
-        <div class="border-b border-base-200 p-3 sm:border-b-0 sm:border-r">
-          <div class="flex items-center gap-1.5 text-xs font-medium text-base-content/50">
-            <Icon name="lucide:list" class="h-4 w-4" /> Plan Items
-          </div>
-          <div class="mt-1 text-xl font-bold">{{ totalItems }}</div>
+        <div class="flex min-w-40 items-center gap-3 border-l border-base-200 px-5 py-4">
+          <Icon name="lucide:list" class="h-4 w-4 text-base-content/40" />
+          <dt class="text-sm text-base-content/50">Plan items</dt>
+          <dd class="ml-auto font-bold">{{ totalItems }}</dd>
         </div>
-        <div class="border-r border-base-200 p-3">
-          <div class="flex items-center gap-1.5 text-xs font-medium text-base-content/50">
-            <Icon name="lucide:layers" class="h-4 w-4" /> Consolidated
-          </div>
-          <div class="mt-1 text-xl font-bold">{{ store.consolidated.length }}</div>
+        <div class="flex min-w-44 items-center gap-3 border-l border-base-200 px-5 py-4">
+          <Icon name="lucide:layers" class="h-4 w-4 text-base-content/40" />
+          <dt class="text-sm text-base-content/50">Consolidated</dt>
+          <dd class="ml-auto font-bold text-success">{{ store.consolidated.length }}</dd>
         </div>
-        <div class="p-3">
-          <div class="flex items-center gap-1.5 text-xs font-medium text-base-content/50">
-            <Icon name="lucide:wallet-cards" class="h-4 w-4" /> Payment
-          </div>
-          <div class="mt-1 text-base font-bold">{{ formatStatus(store.plan?.paymentstatus) }}</div>
-        </div>
+      </dl>
+
+      <div v-if="store.plan?.uuid" class="ml-auto flex items-center border-l border-base-200 px-5 py-4">
+        <AdminPlanDetailActionPanel :plan-uuid="store.plan.uuid" />
       </div>
     </div>
-  </div>
+  </header>
 </template>
 
 <script setup>
-const store = useAdminPlanStore();
+const store = useAdminPlanStore()
 
-const totalItems = computed(() => store.plan?.items_count ?? store.individualMeta?.total ?? 0);
+const totalItems = computed(() => store.plan?.items_count ?? store.individualMeta?.total ?? 0)
+const planTotal = computed(() => (store.totals ?? []).reduce((sum, row) => sum + (Number(row.total) || 0), 0))
+const currencyCode = computed(() => store.plan?.currency?.code || store.plan?.currency?.symbol || '')
 
-// Plan total = sum of every server-aggregated method bucket's total.
-const planTotal = computed(() =>
-  (store.totals ?? []).reduce((sum, row) => sum + (Number(row.total) || 0), 0),
-);
+const formatAmount = value => {
+  const amount = Number(value)
+  return Number.isFinite(amount)
+    ? amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '—'
+}
 
-const currencySymbol = computed(() => {
-  const c = store.plan?.currency;
-  if (!c) return '';
-  return c.symbol ? `${c.symbol} ` : `${c.code} `;
-});
+const formatStatus = status => status
+  ? status.split('_').map(part => part.charAt(0) + part.slice(1).toLowerCase()).join(' ')
+  : '—'
 
-const formatAmount = (v) => {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return '—';
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+const paymentBadge = status => ({
+  PAID: 'badge-success',
+  PARTIALLY_PAID: 'badge-info',
+  PENDING: 'badge-warning',
+  OVERDUE: 'badge-error',
+})[status] || 'badge-ghost'
 
-const formatStatus = (s) => {
-  if (!s) return '—';
-  return s.split('_').map((p) => p.charAt(0) + p.slice(1).toLowerCase()).join(' ');
-};
-
-const paymentBadge = (s) => {
-  if (s === 'PAID') return 'badge-success';
-  if (s === 'PARTIALLY_PAID') return 'badge-info';
-  if (s === 'PENDING') return 'badge-warning';
-  if (s === 'OVERDUE') return 'badge-error';
-  return 'badge-ghost';
-};
-
-const stageBadge = (s) => {
-  if (s === 'DRAFT' || s === 'PENDING_REVIEW') return 'badge-warning badge-outline';
-  if (s === 'PENDING_INTERNAL_APPROVAL') return 'badge-warning';
-  if (s === 'PENDING_ADMIN_AUTHORIZATION') return 'badge-info badge-outline';
-  if (s === 'PENDING_MANAGER_REVIEW' || s === 'PENDING_APPROVER_DECISION') return 'badge-info';
-  if (s === 'AUTHORIZED') return 'badge-success badge-outline';
-  if (s === 'ACTIVE') return 'badge-success';
-  return 'badge-ghost';
-};
-
-const formatTime = (v) => {
-  if (!v) return '—';
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? v : d.toLocaleString();
-};
+const stageBadge = status => {
+  if (['DRAFT', 'PENDING_REVIEW', 'PENDING_INTERNAL_APPROVAL'].includes(status)) return 'badge-warning badge-outline'
+  if (['PENDING_ADMIN_AUTHORIZATION', 'PENDING_MANAGER_REVIEW', 'PENDING_APPROVER_DECISION'].includes(status)) return 'badge-info badge-outline'
+  if (['AUTHORIZED', 'ACTIVE'].includes(status)) return 'badge-success badge-outline'
+  return 'badge-ghost'
+}
 </script>

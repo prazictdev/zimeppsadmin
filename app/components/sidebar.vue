@@ -49,9 +49,8 @@
 <script setup>
 const route = useRoute();
 const isOpen = ref(false);
-const runtimeConfig = useRuntimeConfig();
-const trainingEnvironmentEnabled = String(runtimeConfig.public.trainingEnvironmentEnabled).toLowerCase() === 'true';
 const { user } = useSanctumAuth()
+const trainingEnvironmentEnabled = computed(() => user.value?.data?.training_environment_enabled === true);
 const modules = ref([])
 if (user.value) {
   modules.value = user.value.data.modules;
@@ -78,7 +77,7 @@ const visibleModules = computed(() => modules.value
     submodules: (module.submodules ?? []).filter(submodule =>
       !removedFinanceClients.has(financeClientKey(submodule.url)) &&
       !removedFinanceClients.has(financeClientKey(submodule.name)) &&
-      (trainingEnvironmentEnabled || !isTrainingEnvironmentSubmodule(submodule))
+      (trainingEnvironmentEnabled.value || !isTrainingEnvironmentSubmodule(submodule))
     ),
   }))
   .filter(module => module.submodules.length > 0));

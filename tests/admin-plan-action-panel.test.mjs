@@ -13,7 +13,7 @@ async function renderPanel(actions, recommendation) {
     recommendations: [{ cycle: 1, handler_comment: 'Outdated recommendation' }, { cycle: 2, handler: { name: 'Handler' }, manager: { name: 'Manager' }, manager_action: 'AGREE', manager_comment: 'Manager supports this recommendation.', ...recommendation }],
   };
   let code = compileScript(descriptor, { id: 'actions', inlineTemplate: true, templateOptions: { ssr: true } }).content;
-  code = `import { ref, reactive, computed } from 'vue'; const useAdminPlanStore = () => (${JSON.stringify(store)}); const useAdminPlanHelper = () => ({});\n${code}`;
+  code = `import { ref, reactive, computed } from 'vue'; const useRoute = () => ({path: '/admin-plan-dashboard/plans/sample-plan', query: {}}); const navigateTo = async () => {}; const useAdminPlanStore = () => (${JSON.stringify(store)}); const useAdminPlanHelper = () => ({});\n${code}`;
   code = code.replace(/from (["'])(vue(?:\/server-renderer)?)\1/g, (_, quote, name) => `from '${import.meta.resolve(name)}'`);
   const { default: component } = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
   const app = createSSRApp(component, { planUuid: 'sample-plan' });
@@ -49,6 +49,8 @@ test('approver can maintain the class or submit an active replacement and reopen
   let code = `import { ref, reactive, computed } from 'vue';
     export const requests = [];
     const document = { getElementById: () => ({showModal() {}, close() {}}) };
+    const useRoute = () => ({path: '/admin-plan-dashboard/plans/plan', query: {}});
+    const navigateTo = async () => {};
     const useAdminPlanStore = () => ({workflowActions: ['approver_approve'], plan: {procurementclass_id: 1}, recommendations: [], runTransition: async (...args) => {requests.push(args); return true;}});
     const useAdminPlanHelper = () => ({});
     const useProcurementClassHelper = () => ({getProcurementClasses: async () => ({data: ref({data: [{id: 2, name: 'Class B', status: 'ACTIVE'}, {id: 3, name: 'Old class', status: 'ARCHIVED'}]}), error: ref(null)})});

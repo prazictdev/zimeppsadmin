@@ -32,11 +32,11 @@ useHead({ title: 'Training environment' });
 
 const store = useTrainingSessionStore();
 const { canAccess, canAdd, canDelete, guardPage } = useCheckPermission('trainingsessions');
-const runtimeConfig = useRuntimeConfig();
-const trainingEnvironmentEnabled = String(runtimeConfig.public.trainingEnvironmentEnabled).toLowerCase() === 'true';
+const { user } = useSanctumAuth();
+const trainingEnvironmentEnabled = computed(() => user.value?.data?.training_environment_enabled === true);
 
 onMounted(async () => {
-  if (!trainingEnvironmentEnabled) return;
+  if (!trainingEnvironmentEnabled.value) return;
   const allowed = await guardPage('can.access.trainingsessions');
   if (!allowed) return;
   await store.fetchAll();
