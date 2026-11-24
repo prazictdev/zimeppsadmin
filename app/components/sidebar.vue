@@ -49,6 +49,8 @@
 <script setup>
 const route = useRoute();
 const isOpen = ref(false);
+const runtimeConfig = useRuntimeConfig();
+const trainingEnvironmentEnabled = String(runtimeConfig.public.trainingEnvironmentEnabled).toLowerCase() === 'true';
 const { user } = useSanctumAuth()
 const modules = ref([])
 if (user.value) {
@@ -64,12 +66,19 @@ const removedFinanceClients = new Set([
   'banktransactions',
 ]);
 const financeClientKey = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const isTrainingEnvironmentSubmodule = submodule => {
+  const urlKey = financeClientKey(submodule.url);
+  const nameKey = financeClientKey(submodule.name);
+
+  return urlKey === 'trainingsessions' || nameKey === 'trainingenvironment';
+};
 const visibleModules = computed(() => modules.value
   .map(module => ({
     ...module,
     submodules: (module.submodules ?? []).filter(submodule =>
       !removedFinanceClients.has(financeClientKey(submodule.url)) &&
-      !removedFinanceClients.has(financeClientKey(submodule.name))
+      !removedFinanceClients.has(financeClientKey(submodule.name)) &&
+      (trainingEnvironmentEnabled || !isTrainingEnvironmentSubmodule(submodule))
     ),
   }))
   .filter(module => module.submodules.length > 0));

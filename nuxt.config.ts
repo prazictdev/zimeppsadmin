@@ -26,6 +26,11 @@ export default defineNuxtConfig({
   pinia:{
     storesDirs: ['./stores'],
    },
+  runtimeConfig: {
+    public: {
+      trainingEnvironmentEnabled: String(process.env.TRAINING_ENV ?? '').toLowerCase() === 'true',
+    },
+  },
   sanctum: {
     baseUrl: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
     mode: 'token',
