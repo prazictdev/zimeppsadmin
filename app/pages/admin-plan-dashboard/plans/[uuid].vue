@@ -52,8 +52,6 @@
 
       <main class="min-w-0">
         <AdminPlanDetailItems v-if="activeTab === 'items'" :plan-uuid="planUuid" mode="all" />
-        <PlanClassificationValidation v-else-if="activeTab === 'classification'" :plan-uuid="planUuid" />
-        <AdminPlanDetailItems v-else-if="activeTab === 'consolidated'" :plan-uuid="planUuid" mode="consolidated" />
         <AdminPlanDetailItems v-else-if="activeTab === 'exempted'" :plan-uuid="planUuid" mode="exempted" />
         <AdminPlanDetailDisposalPlans v-else-if="activeTab === 'disposal'" :plan-uuid="planUuid" />
         <AdminPlanDetailEvaluationCommittee v-else-if="activeTab === 'evaluation'" :plan-uuid="planUuid" />
@@ -97,8 +95,6 @@ const adminHistoryCount = computed(() => (store.transitions ?? []).filter(transi
 
 const tabDefinitions = [
   { key: 'items', label: 'Plan Items', icon: 'lucide:list-checks' },
-  { key: 'classification', label: 'UNSPSC Validation', icon: 'lucide:scan-search' },
-  { key: 'consolidated', label: 'Consolidation', icon: 'lucide:layers' },
   { key: 'exempted', label: 'Exemptions', icon: 'lucide:shield-check' },
   { key: 'disposal', label: 'Disposal Plan', icon: 'lucide:trash-2' },
   { key: 'evaluation', label: 'Evaluation Committee', icon: 'lucide:users' },
@@ -128,7 +124,6 @@ function selectTab(key) {
 
 function tabCount(key) {
   if (key === 'items') return store.plan?.items_count ?? null
-  if (key === 'consolidated') return store.consolidated?.length ?? 0
   if (key === 'exempted') return store.totalsByFlag?.find(row => row.key === 'procurement_exemption')?.count ?? 0
   if (key === 'recommendations') return store.recommendations?.length ?? 0
   if (key === 'history') return adminHistoryCount.value

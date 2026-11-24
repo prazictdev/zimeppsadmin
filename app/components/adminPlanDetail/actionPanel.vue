@@ -182,11 +182,8 @@
             <p v-if="isApproverAction" class="mt-1 text-xs text-base-content/50">{{ activeAction === 'approver_send_back_to_pe' ? 'State your clarification questions or recommended corrections. This comment will be visible to the entity.' : activeAction === 'approver_send_back_to_manager' ? 'Explain what the manager needs to reconsider before returning the plan.' : 'Optionally record the rationale for your approval.' }}</p>
             <div v-if="modalError" id="admin_action_error" role="alert" class="mt-2 rounded-lg bg-error/10 px-3 py-3 text-sm text-error">
               <p>{{ modalError }}</p>
-              <div v-if="classificationBlocker" class="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-error/15 pt-2">
+              <div v-if="classificationBlocker" class="mt-2 border-t border-error/15 pt-2">
                 <span>{{ classificationBlocker.affected_items }} of {{ classificationBlocker.total_items }} items require reviewer confirmation.</span>
-                <button type="button" class="btn btn-error btn-xs" @click="openClassificationReview">
-                  <Icon name="lucide:scan-search" /> Review classifications
-                </button>
               </div>
             </div>
           </fieldset>
@@ -209,7 +206,6 @@ const props = defineProps({
 });
 
 const store = useAdminPlanStore();
-const route = useRoute();
 
 const handlerForm = reactive({ recommendation: '', comment: '', manager_user_id: 0 });
 const saving = ref(false);
@@ -224,11 +220,6 @@ const procurementClasses = ref([]);
 const loadingClasses = ref(false);
 const classesError = ref('');
 const classificationBlocker = computed(() => store.transitionReport?.classification || null);
-const openClassificationReview = async () => {
-  closeAction();
-  closePanel();
-  await navigateTo({ path: route.path, query: { ...route.query, tab: 'classification' } });
-};
 const loadClasses = async () => {
   loadingClasses.value = true;
   classesError.value = '';

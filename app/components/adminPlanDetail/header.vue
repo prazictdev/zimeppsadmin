@@ -8,18 +8,12 @@
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-xl font-bold">{{ store.plan?.year ?? '…' }}</h1>
-            <span v-if="store.plan?.procurementclass" class="badge badge-sm badge-outline">{{ store.plan.procurementclass.name }}</span>
+            <span v-if="store.plan?.procurementclass" class="badge badge-sm badge-outline whitespace-nowrap">
+              Required class: {{ store.plan.procurementclass.name }}
+            </span>
           </div>
           <p class="max-w-48 truncate text-xs text-base-content/55">{{ store.plan?.company?.name ?? '' }}</p>
         </div>
-      </div>
-
-      <div class="flex items-center border-l border-base-200 px-5 py-4">
-        <span :class="['badge badge-sm whitespace-nowrap', stageBadge(store.plan?.status)]">{{ formatStatus(store.plan?.status) }}</span>
-      </div>
-
-      <div v-if="store.plan?.paymentstatus" class="flex items-center border-l border-base-200 px-5 py-4">
-        <span :class="['badge badge-sm whitespace-nowrap', paymentBadge(store.plan.paymentstatus)]">{{ formatStatus(store.plan.paymentstatus) }}</span>
       </div>
 
       <dl class="flex items-stretch">
@@ -63,21 +57,4 @@ const formatAmount = value => {
     : '—'
 }
 
-const formatStatus = status => status
-  ? status.split('_').map(part => part.charAt(0) + part.slice(1).toLowerCase()).join(' ')
-  : '—'
-
-const paymentBadge = status => ({
-  PAID: 'badge-success',
-  PARTIALLY_PAID: 'badge-info',
-  PENDING: 'badge-warning',
-  OVERDUE: 'badge-error',
-})[status] || 'badge-ghost'
-
-const stageBadge = status => {
-  if (['DRAFT', 'PENDING_REVIEW', 'PENDING_INTERNAL_APPROVAL'].includes(status)) return 'badge-warning badge-outline'
-  if (['PENDING_ADMIN_AUTHORIZATION', 'PENDING_MANAGER_REVIEW', 'PENDING_APPROVER_DECISION'].includes(status)) return 'badge-info badge-outline'
-  if (['AUTHORIZED', 'ACTIVE'].includes(status)) return 'badge-success badge-outline'
-  return 'badge-ghost'
-}
 </script>
