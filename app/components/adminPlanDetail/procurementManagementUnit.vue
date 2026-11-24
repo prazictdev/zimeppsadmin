@@ -22,11 +22,12 @@
               <th>Gender</th>
               <th class="text-right">Qualifications</th>
               <th class="text-right">Work history</th>
+              <th><span class="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!store.pmuMembers.length">
-              <td colspan="8" class="text-center text-base-content/50">No PMU members.</td>
+              <td colspan="9" class="text-center text-base-content/50">No PMU members.</td>
             </tr>
             <tr v-for="(m, i) in store.pmuMembers" :key="m.id">
               <td>{{ rowNumber(i) }}</td>
@@ -44,17 +45,30 @@
               <td>{{ m.gender || '—' }}</td>
               <td class="text-right">{{ (m.qualifications ?? []).length }}</td>
               <td class="text-right">{{ (m.workhistory ?? []).length }}</td>
+              <td class="text-right">
+                <button type="button" class="btn btn-outline btn-xs whitespace-nowrap" @click="selectedMember = m">
+                  <Icon name="lucide:eye" class="h-3.5 w-3.5" /> View
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+    <AdminPlanDetailCommitteeMemberProfile
+      v-if="selectedMember"
+      :member="selectedMember"
+      committee-label="Procurement Management Unit"
+      supports-professional-profile
+      @close="selectedMember = null"
+    />
   </div>
 </template>
 
 <script setup>
 const props = defineProps({ planUuid: { type: String, required: true } });
 const store = useAdminPlanStore();
+const selectedMember = ref(null);
 
 const rowNumber = (i) => ((store.pmuMembersMeta.current_page - 1) * store.pmuMembersMeta.per_page) + i + 1;
 

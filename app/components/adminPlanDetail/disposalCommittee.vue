@@ -21,11 +21,12 @@
               <th>Designation</th>
               <th>Role</th>
               <th>Gender</th>
+              <th><span class="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!store.disposalMembers.length">
-              <td colspan="7" class="text-center text-base-content/50">No committee members.</td>
+              <td colspan="8" class="text-center text-base-content/50">No committee members.</td>
             </tr>
             <tr v-for="(m, i) in store.disposalMembers" :key="m.id">
               <td>{{ rowNumber(i) }}</td>
@@ -35,17 +36,29 @@
               <td>{{ m.designation || '—' }}</td>
               <td>{{ m.role?.name || '—' }}</td>
               <td>{{ m.gender || '—' }}</td>
+              <td class="text-right">
+                <button type="button" class="btn btn-outline btn-xs whitespace-nowrap" @click="selectedMember = m">
+                  <Icon name="lucide:eye" class="h-3.5 w-3.5" /> View
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+    <AdminPlanDetailCommitteeMemberProfile
+      v-if="selectedMember"
+      :member="selectedMember"
+      committee-label="Disposal Committee"
+      @close="selectedMember = null"
+    />
   </div>
 </template>
 
 <script setup>
 const props = defineProps({ planUuid: { type: String, required: true } });
 const store = useAdminPlanStore();
+const selectedMember = ref(null);
 
 const rowNumber = (i) => ((store.disposalMembersMeta.current_page - 1) * store.disposalMembersMeta.per_page) + i + 1;
 
