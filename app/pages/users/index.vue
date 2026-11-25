@@ -27,6 +27,7 @@
       @create="createUser"
       @update="updateUser"
       @sync-roles="syncRoles"
+      @unlock="unlockUser"
       @delete="deleteUser"
       @reset-password="userStore.sendPasswordReset"
     />
@@ -50,6 +51,7 @@ const loadUser = async (id, resolve) => resolve(await userStore.findOne(id));
 const createUser = async (payload, resolve) => resolve(await userStore.create(payload));
 const updateUser = async (id, payload, resolve) => resolve(await userStore.update(id, payload));
 const syncRoles = async (user, roleIds, resolve) => resolve(await userStore.syncRoles(user, roleIds));
+const unlockUser = async (id, resolve) => resolve(await userStore.unlock(id));
 const deleteUser = async (id, resolve) => resolve(await userStore.remove(id));
 
 onMounted(async () => {

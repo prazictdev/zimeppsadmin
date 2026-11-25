@@ -34,7 +34,7 @@
 
             <div role="alert" class="alert alert-info alert-soft">
               <Icon name="lucide:info" class="h-5 w-5" />
-              <span>Generation may take a moment. Login passwords are shown once after the session is created.</span>
+              <span>Generation may take a moment. Every generated training user will use the password <code class="font-mono font-bold">password</code>.</span>
             </div>
 
             <div class="modal-action">
@@ -50,8 +50,8 @@
         <template v-else>
           <h2 class="text-xl font-bold">Training accounts are ready</h2>
           <div role="alert" class="alert alert-warning alert-soft mt-4">
-            <Icon name="lucide:triangle-alert" class="h-5 w-5" />
-            <span>Download or copy these credentials now. Passwords cannot be retrieved after this dialog closes.</span>
+            <Icon name="lucide:key-round" class="h-5 w-5" />
+            <span>All generated accounts use the default password <code class="font-mono font-bold">password</code>. The password is stored securely as a hash.</span>
           </div>
 
           <div class="mt-4 overflow-x-auto rounded-box border border-base-300">

@@ -38,7 +38,7 @@
               <div class="grid gap-3 sm:grid-cols-3">
                 <div v-for="field in amendmentFields" :key="field.key" class="rounded-box border border-base-200 p-3">
                   <div class="text-xs text-base-content/55">{{ field.label }}</div>
-                  <div class="mt-2 flex items-center justify-between gap-2"><span class="font-mono">{{ formatAmount(s.before_values?.[field.key]) }}</span><Icon name="lucide:arrow-right" class="h-4 w-4 text-base-content/35" /><span class="font-mono font-bold text-primary">{{ formatAmount(s.proposed_values?.[field.key]) }}</span></div>
+                  <div class="mt-2 flex items-center justify-between gap-2"><span :class="field.key === 'procurementmethod_id' ? '' : 'font-mono'">{{ amendmentValue(field, s.before_values?.[field.key]) }}</span><Icon name="lucide:arrow-right" class="h-4 w-4 text-base-content/35" /><span :class="field.key === 'procurementmethod_id' ? 'font-bold text-primary' : 'font-mono font-bold text-primary'">{{ amendmentValue(field, s.proposed_values?.[field.key]) }}</span></div>
                 </div>
               </div>
               <div class="rounded-box bg-base-200/60 p-3"><div class="text-xs text-base-content/55">Reason</div><p class="mt-1 text-sm">{{ s.reason }}</p></div>
@@ -139,11 +139,13 @@ const props = defineProps({
 const emit = defineEmits(['closed']);
 
 const store = useAdminPlanStore();
+const procurementMethodStore = useProcurementMethodStore();
 const dialogId = computed(() => `admin_supp_detail_${props.supplement.uuid}`);
 
 const s = computed(() => store.currentSupplement);
 const isAmendment = computed(() => s.value?.request_type === 'ITEM_AMENDMENT');
 const amendmentFields = [
+  { key: 'procurementmethod_id', label: 'Procurement method' },
   { key: 'quantity', label: 'Quantity' },
   { key: 'unit_cost', label: 'Unit cost' },
   { key: 'total_cost', label: 'Total budget' },
@@ -155,7 +157,10 @@ const sortedRecs = computed(() =>
 const open = async () => {
   const dialog = document.getElementById(dialogId.value);
   if (dialog && !dialog.open) dialog.showModal();
-  await store.loadSupplement(props.planUuid, props.supplement.uuid);
+  await Promise.all([
+    store.loadSupplement(props.planUuid, props.supplement.uuid),
+    procurementMethodStore.items.length ? Promise.resolve() : procurementMethodStore.fetchAll(),
+  ]);
 };
 const close = () => {
   document.getElementById(dialogId.value)?.close();
@@ -171,6 +176,11 @@ const formatAmount = (v) => {
   const n = Number(v);
   if (!Number.isFinite(n)) return '—';
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const amendmentValue = (field, value) => {
+  if (field.key !== 'procurementmethod_id') return formatAmount(value);
+  return procurementMethodStore.items.find(method => Number(method.id) === Number(value))?.name || `Method #${value}`;
 };
 
 const formatTime = (v) => {

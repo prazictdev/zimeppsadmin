@@ -80,6 +80,15 @@ export const useUserHelper = () => {
     }
   };
 
+  const unlockUser = async (id) => {
+    try {
+      const data = await client(`/api/v1/users/${id}/unlock`, { method: 'POST' });
+      return { ok: true, data, error: null };
+    } catch (err) {
+      return { ok: false, data: null, error: extractError(err, 'Failed to clear the temporary login lock.') };
+    }
+  };
+
   const assignRoles = async (userId, roleIds = []) => {
     try {
       const data = await client(`/api/v1/users/${userId}/assign-roles`, {
@@ -138,6 +147,7 @@ export const useUserHelper = () => {
     getRoleOptions,
     createUser,
     updateUser,
+    unlockUser,
     deleteUser,
     assignRoles,
     unassignRole,

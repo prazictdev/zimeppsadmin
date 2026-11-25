@@ -36,7 +36,13 @@
                     {{ initials(user) }}
                   </div>
                   <div>
-                    <p class="font-semibold">{{ fullName(user) }}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="font-semibold">{{ fullName(user) }}</p>
+                      <span v-if="isTemporarilyLocked(user)" class="badge badge-warning badge-sm">
+                        <Icon name="lucide:lock-keyhole" class="h-3 w-3" />
+                        Temporarily locked
+                      </span>
+                    </div>
                     <p class="text-xs text-base-content/50">ID {{ user.id }}</p>
                   </div>
                 </div>
@@ -67,6 +73,14 @@
                   </button>
                   <button v-if="canEdit" class="btn btn-ghost btn-sm" title="Send password reset" @click="requestPasswordReset(user)">
                     <Icon name="lucide:mail-key" class="h-4 w-4" />
+                  </button>
+                  <button
+                    v-if="canEdit && isTemporarilyLocked(user)"
+                    class="btn btn-ghost btn-sm text-warning"
+                    title="Clear temporary login lock"
+                    @click="openUnlock(user)"
+                  >
+                    <Icon name="lucide:lock-keyhole-open" class="h-4 w-4" />
                   </button>
                   <button v-if="canDelete && !isCurrentUser(user)" class="btn btn-ghost btn-sm text-error" title="Remove user" @click="openDelete(user)">
                     <Icon name="lucide:trash-2" class="h-4 w-4" />
@@ -138,6 +152,38 @@
       <form method="dialog" class="modal-backdrop"><button>Close</button></form>
     </dialog>
 
+    <dialog ref="unlockDialog" class="modal">
+      <div class="modal-box">
+        <div class="flex items-start gap-3">
+          <div class="rounded-full bg-warning/15 p-2 text-warning"><Icon name="lucide:lock-keyhole-open" class="h-5 w-5" /></div>
+          <div>
+            <h2 class="text-xl font-bold">Clear temporary login lock?</h2>
+            <p class="mt-1 text-sm text-base-content/70">
+              Allow <strong>{{ fullName(selectedUser) }}</strong> to try signing in again immediately.
+            </p>
+          </div>
+        </div>
+        <div role="alert" class="alert alert-info mt-4 items-start">
+          <Icon name="lucide:shield-check" class="h-5 w-5" />
+          <div class="text-sm">
+            <p>The failed-attempt counter and temporary lock will be cleared.</p>
+            <p class="mt-1 opacity-70">The password, activation status, and login-attempt audit history will not change.</p>
+          </div>
+        </div>
+        <p v-if="selectedUser?.locked_until" class="mt-4 text-sm text-base-content/60">
+          Current lock expires {{ formatLockExpiry(selectedUser.locked_until) }}.
+        </p>
+        <div class="modal-action">
+          <button class="btn" :disabled="submitting" @click="unlockDialog.close()">Cancel</button>
+          <button class="btn btn-warning" :disabled="submitting" @click="confirmUnlock">
+            <span v-if="submitting" class="loading loading-spinner loading-xs" />
+            Unlock user
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>Close</button></form>
+    </dialog>
+
     <dialog ref="deleteDialog" class="modal">
       <div class="modal-box">
         <div class="flex items-start gap-3">
@@ -175,11 +221,12 @@ const props = defineProps({
   canDelete: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['search', 'page-change', 'search-accounts', 'create', 'update', 'sync-roles', 'delete', 'reset-password', 'load-user']);
+const emit = defineEmits(['search', 'page-change', 'search-accounts', 'create', 'update', 'sync-roles', 'delete', 'unlock', 'reset-password', 'load-user']);
 const { user: authenticatedUser } = useSanctumAuth();
 const currentUserId = computed(() => authenticatedUser.value?.data?.user?.id ?? null);
 const userDialog = ref(null);
 const accessDialog = ref(null);
+const unlockDialog = ref(null);
 const deleteDialog = ref(null);
 const editingUser = ref(null);
 const selectedUser = ref(null);
@@ -199,6 +246,11 @@ const availableAccounts = computed(() => {
 const fullName = user => [user?.name, user?.middlename, user?.lastname].filter(Boolean).join(' ') || 'Unknown user';
 const initials = user => `${user?.name?.[0] ?? ''}${user?.lastname?.[0] ?? ''}`.toUpperCase() || 'U';
 const isCurrentUser = user => Number(user?.id) === Number(currentUserId.value);
+const isTemporarilyLocked = user => Boolean(user?.locked_until && new Date(user.locked_until).getTime() > Date.now());
+const formatLockExpiry = value => new Intl.DateTimeFormat(undefined, {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+}).format(new Date(value));
 
 const queueSearch = () => {
   clearTimeout(searchTimer);
@@ -244,6 +296,18 @@ const saveRoles = async () => {
 };
 
 const requestPasswordReset = user => emit('reset-password', user.email);
+const openUnlock = (user) => {
+  selectedUser.value = user;
+  unlockDialog.value.showModal();
+};
+
+const confirmUnlock = async () => {
+  submitting.value = true;
+  const success = await new Promise(resolve => emit('unlock', selectedUser.value.id, resolve));
+  submitting.value = false;
+  if (success) unlockDialog.value.close();
+};
+
 const openDelete = (user) => {
   selectedUser.value = user;
   deleteDialog.value.showModal();

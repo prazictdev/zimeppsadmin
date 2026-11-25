@@ -115,6 +115,20 @@ export const useUserStore = defineStore('users', () => {
     return true;
   };
 
+  const unlock = async (id) => {
+    const { ok, data, error } = await helper.unlockUser(id);
+    if (!ok) {
+      notifyError('Unable to unlock user', error);
+      return false;
+    }
+    toast.success({
+      title: 'User unlocked',
+      message: data?.message ?? 'The user can try signing in again immediately.',
+    });
+    await fetchUsers(currentPage.value);
+    return true;
+  };
+
   const sendPasswordReset = async (email) => {
     const { ok, data, error } = await helper.resetPassword(email);
     if (!ok) {
@@ -140,6 +154,7 @@ export const useUserStore = defineStore('users', () => {
     create,
     update,
     syncRoles,
+    unlock,
     remove,
     sendPasswordReset,
   };
