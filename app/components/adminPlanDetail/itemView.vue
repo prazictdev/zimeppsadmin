@@ -16,101 +16,90 @@
           </button>
         </div>
 
-        <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <section class="rounded border border-base-200">
-            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">Identification</div>
-            <table class="table table-sm w-full">
-              <tbody>
-                <tr><th class="w-1/3 text-base-content/60">Reference No.</th><td class="font-mono">{{ item.reference_no || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Description</th><td class="whitespace-pre-line">{{ item.description || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Procurement Method</th><td>{{ methodLabel || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Procurement Group</th><td>{{ item.procurementgroup?.name || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Source of Funds</th><td>{{ item.sourceoffunds?.name || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Unit of Measure</th><td>{{ item.unitofmeasure?.name || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">UNSPSC</th><td>{{ unspscLabel }}</td></tr>
-                <tr><th class="text-base-content/60">Expense Category</th><td>{{ item.expensecategory || '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Award Type</th><td>{{ effectiveAwardType === 'FRAMEWORK' ? 'Framework' : 'Award' }}</td></tr>
-                <tr><th class="text-base-content/60">Quarter</th><td>{{ item.quarter || '—' }}</td></tr>
-              </tbody>
-            </table>
-          </section>
-
-          <section v-if="item.procurement_exemption && item.exemption_grounds?.length" class="rounded border border-base-200 lg:col-span-2">
-            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">Approved exemption grounds</div>
-            <div class="grid gap-3 p-3 md:grid-cols-2"><article v-for="ground in item.exemption_grounds" :key="ground.ground_uuid || ground.ground_id" class="rounded-lg border border-base-200 p-3"><span class="badge badge-outline badge-sm">{{ ground.type?.name || 'Exemption' }}</span><p class="mt-2 text-sm">{{ ground.justification }}</p><dl v-if="Object.keys(ground.approved_terms || {}).length" class="mt-2 grid grid-cols-2 gap-x-3 text-xs text-base-content/60"><template v-for="(value, key) in ground.approved_terms" :key="key"><dt>{{ readable(key) }}</dt><dd>{{ value ?? '—' }}</dd></template></dl></article></div>
-          </section>
-
-          <section class="rounded border border-base-200">
-            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">Costing</div>
-            <table class="table table-sm w-full">
-              <tbody>
-                <tr><th class="w-1/3 text-base-content/60">Quantity</th><td class="font-mono">{{ formatNum(item.quantity) }}</td></tr>
-                <tr><th class="text-base-content/60">Unit Cost</th><td class="font-mono">{{ formatNum(item.unit_cost) }}</td></tr>
-                <tr><th class="text-base-content/60">Total Cost</th><td class="font-mono font-semibold">{{ formatNum(item.total_cost) }}</td></tr>
-              </tbody>
-            </table>
-          </section>
-
-          <section class="rounded border border-base-200">
-            <div class="flex items-center justify-between gap-3 border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">
-              <span>Statutory procurement schedule</span>
-              <span :class="['badge badge-sm', scheduleBadge]">{{ displayedScheduleLabel }}</span>
-            </div>
-            <div v-if="schedule?.status === 'CONFIGURATION_MISSING'" class="border-b border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-content">
-              The legal time-limit configuration for this procurement method and group is incomplete. The remaining dates cannot be calculated yet.
-            </div>
-            <div v-else-if="schedule?.status === 'INCOMPLETE'" class="border-b border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-content">
-              This item has not yet produced a complete persisted schedule and cannot pass plan submission checks.
-            </div>
-            <table class="table table-sm w-full">
-              <tbody>
-                <tr><th class="w-1/3 text-base-content/60">EOI publication</th><td>{{ formatDate(item.eoi_publication_date) }}</td></tr>
-                <tr><th class="text-base-content/60">EOI closing</th><td>{{ formatDate(item.eoi_closing_date) }}</td></tr>
-                <tr><th class="text-base-content/60">Bid notice publication</th><td>{{ formatDate(item.bid_notice_publication_date) }}</td></tr>
-                <tr><th class="text-base-content/60">Bid closing</th><td>{{ formatDate(item.bid_closing_date) }}</td></tr>
-                <tr><th class="text-base-content/60">Award publication</th><td>{{ formatDate(item.publish_award_notice) }}</td></tr>
-                <tr><th class="text-base-content/60">Contract signing</th><td>{{ formatDate(item.contract_signing) }}</td></tr>
-                <tr><th class="text-base-content/60">Expected delivery</th><td>{{ formatDate(item.expected_delivery_date) }}</td></tr>
-                <tr><th class="text-base-content/60">Cycle days</th><td>{{ item.cycle_days ?? '—' }}</td></tr>
-                <tr><th class="text-base-content/60">Lead time days</th><td>{{ item.lead_time_days ?? '—' }}</td></tr>
-              </tbody>
-            </table>
-            <div v-if="schedule?.stages?.length" class="border-t border-base-200">
-              <div class="px-3 pt-3 text-xs font-semibold uppercase tracking-wide text-base-content/45">Legal-period assessment</div>
-              <div class="overflow-x-auto">
+        <div class="mx-auto mt-3 max-w-6xl space-y-2 pb-4">
+          <details open class="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary class="collapse-title min-h-0 py-3 font-semibold">Identification</summary>
+            <div class="collapse-content px-0 pb-0">
+              <div class="overflow-x-auto border-t border-base-200">
                 <table class="table table-sm">
-                  <thead><tr><th>Stage</th><th class="text-right">Required</th><th class="text-right">Planned</th><th>Status</th></tr></thead>
                   <tbody>
-                    <tr v-for="stage in schedule.stages" :key="stage.key">
-                      <td class="font-medium">{{ stage.label }}</td>
-                      <td class="text-right">{{ days(stage.required) }}</td>
-                      <td class="text-right">{{ days(stage.planned) }}</td>
-                      <td><span :class="['badge badge-xs', stageBadge(stage.status)]">{{ stageStatus(stage.status) }}</span></td>
-                    </tr>
+                    <tr><th class="w-56 text-base-content/60">Reference No.</th><td class="font-mono">{{ item.reference_no || '—' }}</td></tr>
+                    <tr><th class="text-base-content/60">Description</th><td class="whitespace-pre-line">{{ item.description || '—' }}</td></tr>
+                    <tr><th class="text-base-content/60">Method / group</th><td>{{ methodLabel || '—' }} · {{ item.procurementgroup?.name || '—' }}</td></tr>
+                    <tr><th class="text-base-content/60">Funding / unit</th><td>{{ item.sourceoffunds?.name || '—' }} · {{ item.unitofmeasure?.name || '—' }}</td></tr>
+                    <tr><th class="text-base-content/60">UNSPSC</th><td>{{ unspscLabel }}</td></tr>
+                    <tr><th class="text-base-content/60">Planning</th><td>{{ item.expensecategory || '—' }} · {{ effectiveAwardType === 'FRAMEWORK' ? 'Framework' : 'Award' }} · {{ item.quarter || 'No quarter' }}</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
-          </section>
+          </details>
 
-          <section class="rounded border border-base-200">
-            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">Flags</div>
-            <table class="table table-sm w-full">
-              <tbody>
-                <tr><th class="w-1/3 text-base-content/60">Pre-qualification</th><td>{{ yesNo(item.pre_qualification) }}</td></tr>
-                <tr><th class="text-base-content/60">EOI</th><td>{{ yesNo(item.eoi) }}</td></tr>
-                <tr><th class="text-base-content/60">SPOC (Special Oversight Committee)</th><td>{{ yesNo(item.spoc) }}</td></tr>
-                <tr><th class="text-base-content/60">Sustainable procurement</th><td>{{ yesNo(item.sustainable_procurement) }}</td></tr>
-                <tr><th class="text-base-content/60">Affirmative procurement</th><td>{{ yesNo(item.affirmative_procurement) }}</td></tr>
-                <tr><th class="text-base-content/60">Procurement exemption</th><td>{{ yesNo(item.procurement_exemption) }}</td></tr>
-              </tbody>
-            </table>
-          </section>
+          <details v-if="item.procurement_exemption && item.exemption_grounds?.length" open class="collapse collapse-arrow border border-success/30 bg-success/5">
+            <summary class="collapse-title min-h-0 py-3 font-semibold">
+              <span class="flex items-center gap-2"><Icon name="lucide:badge-check" class="text-success" />Approved exemption grounds <span class="badge badge-success badge-sm">{{ item.exemption_grounds.length }}</span></span>
+            </summary>
+            <div class="collapse-content grid gap-2 border-t border-success/20 pt-3 sm:grid-cols-2">
+              <article v-for="ground in item.exemption_grounds" :key="ground.ground_uuid || ground.ground_id" class="rounded-box border border-base-300 bg-base-100 p-3">
+                <span class="badge badge-outline badge-sm">{{ ground.type?.name || 'Exemption' }}</span>
+                <p class="mt-2 text-sm">{{ ground.justification || 'No additional justification recorded.' }}</p>
+                <dl v-if="Object.keys(ground.approved_terms || {}).length" class="mt-2 grid grid-cols-2 gap-x-3 text-xs text-base-content/60"><template v-for="(value, key) in ground.approved_terms" :key="key"><dt>{{ readable(key) }}</dt><dd>{{ value ?? '—' }}</dd></template></dl>
+              </article>
+            </div>
+          </details>
 
-          <section v-if="item.msds" class="rounded border border-base-200 lg:col-span-2">
-            <div class="border-b border-base-200 bg-base-200/40 px-3 py-2 text-sm font-semibold">MSDS</div>
-            <div class="px-3 py-2 whitespace-pre-line text-sm">{{ item.msds }}</div>
-          </section>
+          <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary class="collapse-title min-h-0 py-3 font-semibold">
+              <span class="flex items-center justify-between gap-3 pr-8"><span>Costing</span><span class="font-mono text-sm">Total {{ formatNum(item.total_cost) }}</span></span>
+            </summary>
+            <div class="collapse-content grid grid-cols-1 gap-px border-t border-base-200 bg-base-200 pt-0 sm:grid-cols-3">
+              <div class="bg-base-100 px-4 py-3"><p class="text-xs text-base-content/55">Quantity</p><p class="mt-1 font-mono font-semibold">{{ formatNum(item.quantity) }}</p></div>
+              <div class="bg-base-100 px-4 py-3"><p class="text-xs text-base-content/55">Unit cost</p><p class="mt-1 font-mono font-semibold">{{ formatNum(item.unit_cost) }}</p></div>
+              <div class="bg-base-100 px-4 py-3"><p class="text-xs text-base-content/55">Total cost</p><p class="mt-1 font-mono font-semibold">{{ formatNum(item.total_cost) }}</p></div>
+            </div>
+          </details>
+
+          <details open class="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary class="collapse-title min-h-0 py-3 font-semibold">
+              <span class="flex items-center gap-3 pr-8"><span>Statutory procurement schedule</span><span :class="['badge badge-sm', scheduleBadge]">{{ displayedScheduleLabel }}</span></span>
+            </summary>
+            <div class="collapse-content border-t border-base-200 px-0 pb-0">
+              <div v-if="schedule?.status === 'EXEMPTED'" role="alert" class="alert alert-success alert-soft m-3">
+                <Icon name="lucide:shield-check" /><span>This item has an approved procurement exemption and is excluded from statutory schedule violation counts.</span>
+              </div>
+              <div v-else-if="schedule?.status === 'CONFIGURATION_MISSING'" role="alert" class="alert alert-warning alert-soft m-3">
+                <Icon name="lucide:triangle-alert" /><span>The legal time-limit configuration for this method and group is incomplete.</span>
+              </div>
+              <div v-else-if="schedule?.status === 'INCOMPLETE'" role="alert" class="alert alert-warning alert-soft m-3">
+                <Icon name="lucide:triangle-alert" /><span>This item has not produced a complete persisted schedule and cannot pass submission checks.</span>
+              </div>
+
+              <dl class="grid grid-cols-1 border-t border-base-200 sm:grid-cols-2 lg:grid-cols-3">
+                <div v-for="entry in scheduleEntries" :key="entry.label" class="border-b border-base-200 px-4 py-2.5 sm:border-r">
+                  <dt class="text-xs text-base-content/55">{{ entry.label }}</dt><dd class="mt-0.5 text-sm font-medium">{{ entry.value }}</dd>
+                </div>
+              </dl>
+
+              <div v-if="schedule?.status !== 'EXEMPTED' && schedule?.stages?.length" class="overflow-x-auto border-t border-base-200">
+                <table class="table table-sm">
+                  <thead><tr><th>Legal-period assessment</th><th class="text-right">Required</th><th class="text-right">Planned</th><th>Status</th></tr></thead>
+                  <tbody><tr v-for="stage in schedule.stages" :key="stage.key"><td class="font-medium">{{ stage.label }}</td><td class="text-right">{{ days(stage.required) }}</td><td class="text-right">{{ days(stage.planned) }}</td><td><span :class="['badge badge-xs', stageBadge(stage.status)]">{{ stageStatus(stage.status) }}</span></td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details class="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary class="collapse-title min-h-0 py-3 font-semibold">Flags</summary>
+            <div class="collapse-content grid grid-cols-1 gap-px border-t border-base-200 bg-base-200 pt-0 sm:grid-cols-2 lg:grid-cols-3">
+              <div v-for="flag in flagEntries" :key="flag.label" class="flex items-center justify-between gap-3 bg-base-100 px-4 py-2.5"><span class="text-sm text-base-content/65">{{ flag.label }}</span><span :class="['badge badge-sm', flag.value ? 'badge-success badge-soft' : 'badge-ghost']">{{ yesNo(flag.value) }}</span></div>
+            </div>
+          </details>
+
+          <details v-if="item.msds" class="collapse collapse-arrow border border-base-300 bg-base-100">
+            <summary class="collapse-title min-h-0 py-3 font-semibold">Minimum service delivery standard</summary>
+            <div class="collapse-content whitespace-pre-line border-t border-base-200 pt-3 text-sm">{{ item.msds }}</div>
+          </details>
         </div>
 
         <div class="modal-action">
@@ -130,15 +119,20 @@ const props = defineProps({
 const effectiveAwardType = computed(() => props.awardType || props.item.award_type);
 const schedule = computed(() => props.item.schedule_requirements ?? null);
 const scheduleLabel = computed(() => ({
+  EXEMPTED: 'Approved exemption',
   COMPLIANT: 'Meets configured periods',
   NON_COMPLIANT: 'Below required period',
   INCOMPLETE: 'Incomplete',
   CONFIGURATION_MISSING: 'Configuration required',
 })[schedule.value?.status] || 'Not assessed');
-const displayedScheduleLabel = computed(() => schedule.value?.exemption_adjusted
-  ? `${scheduleLabel.value} · Exemption-adjusted`
-  : scheduleLabel.value);
+const displayedScheduleLabel = computed(() => {
+  if (schedule.value?.status === 'EXEMPTED') return scheduleLabel.value;
+  return schedule.value?.exemption_adjusted
+    ? `${scheduleLabel.value} · Exemption-adjusted`
+    : scheduleLabel.value;
+});
 const scheduleBadge = computed(() => ({
+  EXEMPTED: 'badge-success',
   COMPLIANT: 'badge-success',
   NON_COMPLIANT: 'badge-error',
   INCOMPLETE: 'badge-warning',
@@ -173,6 +167,27 @@ const formatDate = (v) => {
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? v : d.toLocaleDateString();
 };
+
+const scheduleEntries = computed(() => [
+  { label: 'EOI publication', value: formatDate(props.item.eoi_publication_date) },
+  { label: 'EOI closing', value: formatDate(props.item.eoi_closing_date) },
+  { label: 'Bid notice publication', value: formatDate(props.item.bid_notice_publication_date) },
+  { label: 'Bid closing', value: formatDate(props.item.bid_closing_date) },
+  { label: 'Award publication', value: formatDate(props.item.publish_award_notice) },
+  { label: 'Contract signing', value: formatDate(props.item.contract_signing) },
+  { label: 'Expected delivery', value: formatDate(props.item.expected_delivery_date) },
+  { label: 'Cycle days', value: props.item.cycle_days ?? '—' },
+  { label: 'Lead time days', value: props.item.lead_time_days ?? '—' },
+]);
+
+const flagEntries = computed(() => [
+  { label: 'Pre-qualification', value: props.item.pre_qualification },
+  { label: 'EOI', value: props.item.eoi },
+  { label: 'SPOC', value: props.item.spoc },
+  { label: 'Sustainable procurement', value: props.item.sustainable_procurement },
+  { label: 'Affirmative procurement', value: props.item.affirmative_procurement },
+  { label: 'Procurement exemption', value: props.item.procurement_exemption },
+]);
 
 const yesNo = (v) => (v ? 'Yes' : 'No');
 const days = value => value === null || value === undefined ? 'Not configured' : `${value} days`;
