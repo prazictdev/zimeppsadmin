@@ -92,21 +92,22 @@ const isRegulator = computed(() =>
   )
 )
 
-const removedFinanceClients = new Set([
+const hiddenAdminClients = new Set([
   'currencies',
   'exchangerates',
   'bankaccounttypes',
   'banks',
   'bankaccounts',
   'banktransactions',
+  'procurementmethodtimelimits',
 ])
 const financeClientKey = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
 const visibleModules = computed(() => {
   const configuredModules = modules.value.map(module => ({
     ...module,
     submodules: (module.submodules ?? []).filter(submodule =>
-      !removedFinanceClients.has(financeClientKey(submodule.url)) &&
-      !removedFinanceClients.has(financeClientKey(submodule.name))
+      !hiddenAdminClients.has(financeClientKey(submodule.url)) &&
+      !hiddenAdminClients.has(financeClientKey(submodule.name))
     ),
   })).filter(module => module.submodules.length > 0)
 
