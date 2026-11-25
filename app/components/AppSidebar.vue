@@ -152,6 +152,15 @@ const visibleModules = computed(() => {
     })
   }
 
+  if (can('can.access.competitionscopethresholds') && !configuredUrls.has('/competition-scope-thresholds')) {
+    systemConfigurationSubmodules.push({
+      id: 'competition-scope-thresholds',
+      name: 'Competition Thresholds',
+      icon: 'lucide:scale',
+      url: '/competition-scope-thresholds',
+    })
+  }
+
   if (systemConfigurationSubmodules.length > 0) {
     configuredModules.push({
       id: 'system-configuration',
