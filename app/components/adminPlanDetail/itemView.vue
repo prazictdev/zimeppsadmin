@@ -16,7 +16,7 @@
           </button>
         </div>
 
-        <div class="mx-auto mt-3 max-w-6xl space-y-2 pb-4">
+        <div class="mt-3 w-full space-y-2 pb-4">
           <details open class="collapse collapse-arrow border border-base-300 bg-base-100">
             <summary class="collapse-title min-h-0 py-3 font-semibold">Identification</summary>
             <div class="collapse-content px-0 pb-0">
@@ -39,12 +39,33 @@
             <summary class="collapse-title min-h-0 py-3 font-semibold">
               <span class="flex items-center gap-2"><Icon name="lucide:badge-check" class="text-success" />Approved exemption grounds <span class="badge badge-success badge-sm">{{ item.exemption_grounds.length }}</span></span>
             </summary>
-            <div class="collapse-content grid gap-2 border-t border-success/20 pt-3 sm:grid-cols-2">
-              <article v-for="ground in item.exemption_grounds" :key="ground.ground_uuid || ground.ground_id" class="rounded-box border border-base-300 bg-base-100 p-3">
-                <span class="badge badge-outline badge-sm">{{ ground.type?.name || 'Exemption' }}</span>
-                <p class="mt-2 text-sm">{{ ground.justification || 'No additional justification recorded.' }}</p>
-                <dl v-if="Object.keys(ground.approved_terms || {}).length" class="mt-2 grid grid-cols-2 gap-x-3 text-xs text-base-content/60"><template v-for="(value, key) in ground.approved_terms" :key="key"><dt>{{ readable(key) }}</dt><dd>{{ value ?? '—' }}</dd></template></dl>
-              </article>
+            <div class="collapse-content overflow-x-auto border-t border-success/20 px-0 pb-0">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th class="w-60">Ground</th>
+                    <th>Justification</th>
+                    <th class="w-2/5">Approved terms</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="ground in item.exemption_grounds" :key="ground.ground_uuid || ground.ground_id">
+                    <td class="align-top">
+                      <span class="badge badge-outline badge-sm whitespace-nowrap">{{ ground.type?.name || 'Exemption' }}</span>
+                    </td>
+                    <td class="min-w-64 align-top whitespace-normal">{{ ground.justification || 'No additional justification recorded.' }}</td>
+                    <td class="min-w-80 align-top">
+                      <dl v-if="approvedTermEntries(ground).length" class="grid grid-cols-[minmax(9rem,auto)_1fr] gap-x-3 gap-y-1 text-xs">
+                        <template v-for="term in approvedTermEntries(ground)" :key="term.label">
+                          <dt class="text-base-content/55">{{ term.label }}</dt>
+                          <dd class="font-medium break-words">{{ term.value }}</dd>
+                        </template>
+                      </dl>
+                      <span v-else class="text-sm text-base-content/45">No additional terms</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </details>
 
@@ -190,6 +211,17 @@ const flagEntries = computed(() => [
 ]);
 
 const yesNo = (v) => (v ? 'Yes' : 'No');
+const formatTermValue = (value) => {
+  if (value === null || value === undefined || value === '') return '—';
+  if (typeof value === 'boolean') return yesNo(value);
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'object') return Object.values(value).join(', ');
+  return String(value);
+};
+const approvedTermEntries = ground => Object.entries(ground?.approved_terms || {}).map(([key, value]) => ({
+  label: readable(key),
+  value: formatTermValue(value),
+}));
 const days = value => value === null || value === undefined ? 'Not configured' : `${value} days`;
 const stageStatus = status => ({ pass: 'Meets minimum', fail: 'Below minimum', incomplete: 'Incomplete' })[status] || 'Not assessed';
 const stageBadge = status => ({ pass: 'badge-success', fail: 'badge-error', incomplete: 'badge-warning' })[status] || 'badge-ghost';
