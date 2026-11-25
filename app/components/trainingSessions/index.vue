@@ -108,14 +108,28 @@
         <div v-if="detailsLoading" class="flex min-h-40 items-center justify-center"><span class="loading loading-spinner loading-lg"></span></div>
         <div v-else class="mt-5 overflow-x-auto rounded-box border border-base-300">
           <table class="table table-sm">
-            <thead><tr><th>Procurement entity</th><th>User</th><th>Activation</th></tr></thead>
+            <thead><tr><th>Procurement entity</th><th>User</th><th>Activation</th><th><span class="sr-only">Actions</span></th></tr></thead>
             <tbody>
               <tr v-for="account in accounts" :key="account.id || account.uuid || account.email">
                 <td>{{ account.company_name || account.company?.name || '—' }}</td>
                 <td><p>{{ account.user_name || fullName(account.user) }}</p><p class="text-xs text-base-content/45">{{ account.email || account.user?.email }}</p></td>
                 <td><span class="badge badge-success badge-soft badge-sm">Activated</span></td>
+                <td class="text-right">
+                  <button
+                    v-if="canEdit && isActive(selected)"
+                    class="btn btn-ghost btn-xs"
+                    type="button"
+                    :disabled="resettingAccountId === account.id"
+                    title="Reset this demo user's password to password"
+                    @click="resetPassword(account)"
+                  >
+                    <span v-if="resettingAccountId === account.id" class="loading loading-spinner loading-xs" />
+                    <Icon v-else name="lucide:key-round" class="h-3.5 w-3.5" />
+                    Reset password
+                  </button>
+                </td>
               </tr>
-              <tr v-if="!accounts.length"><td colspan="3" class="py-8 text-center text-base-content/45">No account details were returned.</td></tr>
+              <tr v-if="!accounts.length"><td colspan="4" class="py-8 text-center text-base-content/45">No account details were returned.</td></tr>
             </tbody>
           </table>
         </div>
@@ -129,6 +143,7 @@
 <script setup>
 const props = defineProps({
   canAdd: { type: Boolean, default: false },
+  canEdit: { type: Boolean, default: false },
   canDelete: { type: Boolean, default: false },
 });
 
@@ -137,6 +152,7 @@ const search = ref('');
 const selected = ref(null);
 const details = ref(null);
 const detailsLoading = ref(false);
+const resettingAccountId = ref(null);
 const detailsDialog = ref(null);
 
 const filteredSessions = computed(() => {
@@ -164,7 +180,7 @@ function formatDate(value) {
 }
 function fullName(user) {
   if (!user) return '—';
-  return [user.firstname || user.first_name, user.surname || user.last_name].filter(Boolean).join(' ') || 'Training user';
+  return [user.name || user.firstname || user.first_name, user.lastname || user.surname || user.last_name].filter(Boolean).join(' ') || 'Training user';
 }
 async function showDetails(session) {
   selected.value = session;
@@ -179,5 +195,16 @@ async function deactivate(session) {
   const confirmed = window.confirm(`Deactivate "${session.session_name}" and prevent all generated users from signing in?`);
   if (!confirmed) return;
   await store.deactivate(session.uuid || session.id);
+}
+async function resetPassword(account) {
+  if (!props.canEdit || !selected.value || !isActive(selected.value)) return;
+  const email = account.email || account.user?.email || 'this training user';
+  const confirmed = window.confirm(`Reset ${email}'s password to "password"? Their temporary login lock will also be cleared.`);
+  if (!confirmed) return;
+
+  resettingAccountId.value = account.id;
+  const success = await store.resetPassword(selected.value.uuid || selected.value.id, account.id);
+  resettingAccountId.value = null;
+  if (success) details.value = await store.findOne(selected.value.uuid || selected.value.id) || details.value;
 }
 </script>

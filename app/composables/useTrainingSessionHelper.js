@@ -38,5 +38,14 @@ export const useTrainingSessionHelper = () => {
     }
   };
 
-  return { getTrainingSessions, getTrainingSession, createTrainingSession, deactivateTrainingSession };
+  const resetTrainingUserPassword = async (sessionUuid, accountId) => {
+    try {
+      const data = await client(`${baseUrl}/${sessionUuid}/accounts/${accountId}/reset-password`, { method: 'POST' });
+      return { data: ref(data), error: ref(null) };
+    } catch (error) {
+      return { data: ref(null), error: ref(error) };
+    }
+  };
+
+  return { getTrainingSessions, getTrainingSession, createTrainingSession, deactivateTrainingSession, resetTrainingUserPassword };
 };

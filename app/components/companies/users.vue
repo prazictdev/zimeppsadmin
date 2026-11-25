@@ -10,14 +10,24 @@
 
     <div v-if="filteredUsers.length" class="overflow-x-auto">
       <table class="table table-sm min-w-[50rem]">
-        <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>User</th><th>Email</th><th>Gender</th><th>Account state</th><th></th></tr></thead>
         <tbody>
           <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-base-200/30">
             <td><div class="flex items-center gap-2"><span class="flex h-8 w-8 items-center justify-center rounded-full bg-base-200 text-xs font-bold">{{ initials(user) }}</span><span class="font-medium">{{ getUserFullName(user) }}</span></div></td>
             <td class="text-sm">{{ user.email }}</td>
             <td class="capitalize">{{ user.gender ?? '—' }}</td>
-            <td><span :class="['badge badge-sm', user.status === 'active' ? 'badge-success' : 'badge-ghost']">{{ user.status ?? 'unknown' }}</span></td>
-            <td><div class="flex justify-end gap-1"><AdminuserEdit v-if="can('can.edit.users')" :user="user" :company="company" @refreshcompany="handleRefreshCompany" /><AdminuserAccess v-if="can('can.edit.users')" :user="user" :company="company" @refreshuser="handleRefreshCompany" /><AdminuserDelete v-if="can('can.delete.users') && !isCurrentUser(user)" :user="user" @refreshcompany="handleRefreshCompany" /><AdminuserReset v-if="can('can.edit.users')" :user="user" @refreshcompany="handleRefreshCompany" /></div></td>
+            <td>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span :class="['badge badge-sm', user.status === 'active' ? 'badge-success' : 'badge-ghost']" title="Administrative account status">
+                  {{ user.status ?? 'unknown' }}
+                </span>
+                <span v-if="isTemporarilyLocked(user)" class="badge badge-error badge-sm" :title="`Login locked until ${formatLockExpiry(user.locked_until)}`">
+                  <Icon name="lucide:lock-keyhole" class="h-3 w-3" />
+                  Login locked
+                </span>
+              </div>
+            </td>
+            <td><div class="flex justify-end gap-1"><AdminuserEdit v-if="can('can.edit.users')" :user="user" :company="company" @refreshcompany="handleRefreshCompany" /><AdminuserAccess v-if="can('can.edit.users')" :user="user" :company="company" @refreshuser="handleRefreshCompany" /><AdminuserDelete v-if="can('can.delete.users') && !isCurrentUser(user)" :user="user" @refreshcompany="handleRefreshCompany" /><AdminuserUnlock v-if="can('can.edit.users') && isTemporarilyLocked(user)" :user="user" @refreshcompany="handleRefreshCompany" /><AdminuserReset v-if="can('can.edit.users')" :user="user" @refreshcompany="handleRefreshCompany" /></div></td>
           </tr>
         </tbody>
       </table>
@@ -55,6 +65,17 @@ function initials(user) {
 
 function isCurrentUser(user) {
   return Number(user?.id) === Number(currentUserId.value)
+}
+
+function isTemporarilyLocked(user) {
+  return Boolean(user?.locked_until && new Date(user.locked_until).getTime() > Date.now())
+}
+
+function formatLockExpiry(value) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
 }
 
 function handleRefreshCompany() {

@@ -5,7 +5,7 @@ export const useTrainingSessionStore = defineStore('trainingSessions', () => {
   const loading = ref(false);
   const creating = ref(false);
   const toast = useToast();
-  const { getTrainingSessions, getTrainingSession, createTrainingSession, deactivateTrainingSession } = useTrainingSessionHelper();
+  const { getTrainingSessions, getTrainingSession, createTrainingSession, deactivateTrainingSession, resetTrainingUserPassword } = useTrainingSessionHelper();
 
   const messageFrom = (error, fallback) =>
     error?.data?.message || error?.message || fallback;
@@ -86,5 +86,26 @@ export const useTrainingSessionStore = defineStore('trainingSessions', () => {
     return true;
   };
 
-  return { sessions, loading, creating, fetchAll, findOne, create, deactivate };
+  const resetPassword = async (sessionUuid, accountId) => {
+    const { data, error } = await resetTrainingUserPassword(sessionUuid, accountId);
+    if (error.value) {
+      toast.error({
+        title: 'Password was not reset',
+        message: messageFrom(error.value, 'Please try again.'),
+        position: 'topRight',
+        layout: 2,
+      });
+      return false;
+    }
+
+    toast.success({
+      title: 'Training password reset',
+      message: data.value?.message || 'The user can now sign in with password.',
+      position: 'topRight',
+      layout: 2,
+    });
+    return true;
+  };
+
+  return { sessions, loading, creating, fetchAll, findOne, create, deactivate, resetPassword };
 });

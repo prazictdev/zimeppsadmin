@@ -16,6 +16,7 @@
       v-else-if="canAccess"
       class="mt-3"
       :can-add="canAdd"
+      :can-edit="canEdit || canAdd"
       :can-delete="canDelete"
     />
 
@@ -31,7 +32,7 @@ definePageMeta({ layout: 'default' });
 useHead({ title: 'Training environment' });
 
 const store = useTrainingSessionStore();
-const { canAccess, canAdd, canDelete, guardPage } = useCheckPermission('trainingsessions');
+const { canAccess, canAdd, canEdit, canDelete, guardPage } = useCheckPermission('trainingsessions');
 const { user } = useSanctumAuth();
 const trainingEnvironmentEnabled = computed(() => user.value?.data?.training_environment_enabled === true);
 

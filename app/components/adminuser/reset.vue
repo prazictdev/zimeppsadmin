@@ -1,8 +1,8 @@
 <template>
     <div>
-        <button class="btn btn-xs btn-warning" @click="openResetPasswordModal">
-            <Icon name="lucide:rotate-cw" />
-            <span class="hidden md:block">Reset</span>
+        <button class="btn btn-xs btn-ghost" title="Send password reset" @click="openResetPasswordModal">
+            <Icon name="lucide:mail-key" />
+            <span class="hidden md:block">Password</span>
         </button>
         <dialog :id="`reset_password_modal_${user.id}`" class="modal">
             <div class="modal-box ">
