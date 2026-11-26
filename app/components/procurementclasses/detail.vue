@@ -71,6 +71,13 @@
             v-if="canAdd && klass?.status === 'ACTIVE'"
             :class-id="classId"
           />
+          <ProcurementclassesThresholdGenerate
+            v-if="(canAdd || canEdit) && klass?.status === 'ACTIVE' && ['A', 'B', 'C'].includes(klass.name.trim().toUpperCase())"
+            :class-id="classId"
+            :class-name="klass.name"
+            :can-add="canAdd"
+            :can-edit="canEdit"
+          />
         </div>
       </div>
 
